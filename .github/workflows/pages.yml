@@ -1,4 +1,5 @@
 name: Publish Sichuan game to GitHub Pages
+# Fresh deployment workflow run after Pages activation.
 
 on:
   push:
