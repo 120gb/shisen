@@ -44,6 +44,8 @@ main{position:absolute;inset:0;width:100%;height:100%;padding:env(safe-area-inse
 #sound{top:50%;transform:translate(-50%,-50%);background:#262626;border-color:#707070}
 #reroll{top:max(7px,calc((100% - var(--game-height, 100%))/2 + 7px));min-height:66px;background:#38291a;border-color:#d38428}
 #reroll .small{font-size:.79em;font-weight:500;opacity:.92}
+#giveup{top:max(7px,calc((100% - var(--game-height, 100%))/2 + 7px));min-height:66px;background:#38291a;border-color:#d38428}
+#giveup .small{font-size:.79em;font-weight:500;opacity:.92}
 #status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(orientation:portrait) and (pointer:coarse){
  #landscapeStage{left:100vw;left:100dvw;top:0;width:100vh;width:100dvh;height:100vw;height:100dvw;right:auto;bottom:auto;transform-origin:top left;transform:rotate(90deg)}
@@ -124,7 +126,7 @@ background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;
  .contest-panel .record-cell .record-score{font-size:10px}
 }
 </style></head><body><div id="landscapeStage"><main><div class="contest-layout"><div class="play-row" id="playRow">
-<nav class="side-rail rail-left" id="leftRail" aria-label="音声の操作"><button class="action" id="sound" type="button" aria-pressed="false">音：OFF</button></nav>
+<nav class="side-rail rail-left" id="leftRail" aria-label="ギブアップと音声の操作"><button class="action" id="giveup" type="button" disabled aria-label="ギブアップ（2回連続タップで現在の得点を確定）"><span>ギブアップ</span><span class="small">2回タップ</span></button><button class="action" id="sound" type="button" aria-pressed="false">音：OFF</button></nav>
 <div class="game" id="game" role="region" aria-label="四川省ゲーム">
  <div class="hud"><span>TIME: <span id="time">80</span></span><span class="score-group"><span class="score-label">SCORE:</span><span class="score-value" id="score">0</span><span class="gain" id="gain"></span></span></div>
  <div class="board" id="board" role="group" aria-label="17列8行の四川省盤面"></div>
@@ -190,7 +192,7 @@ function restoreContest(){
   const saved=JSON.parse(localStorage.getItem(CONTEST_KEY)||'null');
   if(!saved||!Array.isArray(saved.entries))return [];
   return saved.entries.slice(0,CONTEST_MAX_ROUNDS).filter(x=>x&&Number.isFinite(x.score)&&x.score>=0)
-    .map(x=>({score:Math.round(x.score),clear:x.clear===true,time:typeof x.time==='number'?x.time:0}));
+    .map(x=>({score:Math.round(x.score),clear:x.clear===true,reason:x.reason==='giveup'?'giveup':x.clear?'clear':'timeout',time:typeof x.time==='number'?x.time:0}));
  }catch(_){return []}
 }
 let contestEntries=restoreContest();
@@ -248,21 +250,21 @@ function showContestResults(reason){
  const last=contestEntries[st.count-1]||null;
  $('contestLastTitle').textContent=st.won?'100万点達成！':st.exhausted?'100回終了':st.count+'回目の結果';
  $('contestLastScore').textContent=last?formatted(last.score)+'点':'—';
- $('contestLastInfo').textContent=last?(last.clear?'全消し':'80秒終了'):'大会成績';
+ $('contestLastInfo').textContent=last?(last.reason==='giveup'?'ギブアップ':last.clear?'全消し':'80秒終了'):'大会成績';
  $('contestNext').textContent=st.won||st.exhausted?'新しい大会を開始':'次のゲーム';
  overlay.hidden=true;
  $('contestPanel').hidden=false;
 }
 function recordContestRound(reason){
  if(contestOver())return contestStats();
- contestEntries.push({score:Math.max(0,Math.round(score)),clear:reason==='clear',time:Date.now()});
+ contestEntries.push({score:Math.max(0,Math.round(score)),clear:reason==='clear',reason,time:Date.now()});
  saveContest();renderContest();return contestStats();
 }
 function resetContestSession(){
  $('contestPanel').hidden=true;
  stopTimers();contestEntries=[];saveContest();
  phase='ready';rerolling=false;rerollDue=0;selected=-1;score=0;combo=0;remaining=DURATION;
- $('rerollMessage').hidden=true;$('reroll').disabled=true;
+ $('rerollMessage').hidden=true;$('reroll').disabled=true;$('giveup').disabled=true;cancelPendingActionTap();
  original=newPlayableBoard();board=original.slice();render();renderContest();
  $('dialogTitle').textContent='100万点チャレンジ';
  $('dialogText').textContent='80秒ごとに得点を記録し、最大100回で累計100万点を目指します。全消しは残り時間ボーナス込みで記録。盤面リセットは回数に含まれません。';
@@ -393,7 +395,7 @@ function clearOverlay(){overlay.hidden=true;$('resultScore').hidden=true;}
 function startGame(fresh=true){
  if(contestOver())return;
  $('contestPanel').hidden=true;
- stopTimers();phase='playing';rerolling=false;rerollDue=0;$('rerollMessage').hidden=true;$('reroll').disabled=false;selected=-1;score=0;combo=0;remaining=DURATION;
+ stopTimers();phase='playing';rerolling=false;rerollDue=0;$('rerollMessage').hidden=true;$('reroll').disabled=false;$('giveup').disabled=false;cancelPendingActionTap();selected=-1;score=0;combo=0;remaining=DURATION;
  if(fresh||original.length!==N)original=newPlayableBoard();board=original.slice();render();clearOverlay();setStatus('同じ絵柄の牌を2枚タップ（2本指でも操作できます）');$('gain').classList.remove('visible');
  deadline=Date.now()+DURATION*1000;raf=requestAnimationFrame(tick);
 }
@@ -405,6 +407,12 @@ function finishReroll(){
  do{next=newPlayableBoard();}while(next.every((value,i)=>value===before[i]));
  original=next;board=next.slice();selected=-1;render();
  setStatus('新しい盤面に切り替えました。残り時間は継続中');
+}
+function requestGiveUp(){
+ if(phase!=='playing')return;
+ remaining=Math.max(0,(deadline-Date.now())/1000);
+ if(remaining<=0){finish('timeout',0);return;}
+ finish('giveup',0);
 }
 function requestReroll(){
  if(phase!=='playing'||rerolling)return;
@@ -425,12 +433,12 @@ function tick(){
  if(phase==='playing')raf=requestAnimationFrame(tick);
 }
 function finish(reason,bonus){if(phase!=='playing')return;
- stopTimers();rerolling=false;rerollDue=0;$('rerollMessage').hidden=true;$('reroll').disabled=true;phase='result';selected=-1;
+ stopTimers();cancelPendingActionTap();rerolling=false;rerollDue=0;$('rerollMessage').hidden=true;$('reroll').disabled=true;$('giveup').disabled=true;phase='result';selected=-1;
  for(let i=0;i<N;i++)removeAt(i);  // Missing tile = black, not a white or gray square.
  if(reason==='timeout')remaining=0;updateHud();recordBest();
  const contest=recordContestRound(reason);
- const resultDetail=reason==='timeout'?'80秒終了':`全消し・残り時間ボーナス +${formatted(bonus)}点`;
- $('dialogTitle').textContent=contest.won?'100万点達成！':contest.exhausted?'100回終了':reason==='timeout'?'TIME UP':'全消し！';
+ const resultDetail=reason==='timeout'?'80秒終了':reason==='giveup'?'ギブアップ（現在の得点を確定）':`全消し・残り時間ボーナス +${formatted(bonus)}点`;
+ $('dialogTitle').textContent=contest.won?'100万点達成！':contest.exhausted?'100回終了':reason==='timeout'?'TIME UP':reason==='giveup'?'ギブアップ':'全消し！';
  $('dialogText').textContent=resultDetail+' ／ '+contest.count+'回目　累計 '+formatted(contest.total)+'点'+
    (contest.won?' ／ 目標達成':contest.exhausted?' ／ 目標未達':'');
  $('resultScore').textContent=`${formatted(score)} 点`;$('resultScore').hidden=false;
@@ -508,34 +516,35 @@ $('contestNext').addEventListener('click',()=>{
  }
  startGame(true);
 });
-// Accidental-reset guard: two consecutive taps on the same button are required.
-// There is no confirmation dialog; another tap anywhere cancels the first tap.
-const REROLL_DOUBLE_TAP_WINDOW=1200;
-let rerollFirstTapAt=0,rerollTapTimer=0;
-function cancelRerollTap(){
- rerollFirstTapAt=0;
- if(rerollTapTimer){clearTimeout(rerollTapTimer);rerollTapTimer=0;}
+// Both side buttons require two consecutive taps on that same button.
+// Any other tap cancels the pending action; neither action shows a confirmation.
+const ACTION_DOUBLE_TAP_WINDOW=1200;
+let pendingActionButton=null,pendingActionAt=0,pendingActionTimer=0;
+function cancelPendingActionTap(){
+ pendingActionButton=null;pendingActionAt=0;
+ if(pendingActionTimer){clearTimeout(pendingActionTimer);pendingActionTimer=0;}
 }
-function confirmRerollTap(){
- if(phase!=='playing'||rerolling){cancelRerollTap();return;}
+function doubleTapAction(button,action){
+ if(phase!=='playing'){cancelPendingActionTap();return;}
  const now=Date.now();
- if(rerollFirstTapAt>0&&now-rerollFirstTapAt<=REROLL_DOUBLE_TAP_WINDOW){
-  cancelRerollTap();
-  requestReroll();
+ if(pendingActionButton===button&&now-pendingActionAt<=ACTION_DOUBLE_TAP_WINDOW){
+  cancelPendingActionTap();
+  action();
  }else{
-  cancelRerollTap();
-  rerollFirstTapAt=now;
-  rerollTapTimer=setTimeout(cancelRerollTap,REROLL_DOUBLE_TAP_WINDOW);
+  cancelPendingActionTap();
+  pendingActionButton=button;pendingActionAt=now;
+  pendingActionTimer=setTimeout(cancelPendingActionTap,ACTION_DOUBLE_TAP_WINDOW);
  }
 }
-function cancelRerollIfOtherTarget(event){
- if(rerollFirstTapAt&&!$('reroll').contains(event.target))cancelRerollTap();
+function cancelActionIfOtherTarget(event){
+ if(pendingActionButton&&!pendingActionButton.contains(event.target))cancelPendingActionTap();
 }
-document.addEventListener('pointerdown',cancelRerollIfOtherTarget,true);
-document.addEventListener('touchstart',cancelRerollIfOtherTarget,{capture:true,passive:true});
-document.addEventListener('click',cancelRerollIfOtherTarget,true);
-window.addEventListener('blur',cancelRerollTap);
-$('reroll').addEventListener('click',confirmRerollTap);
+document.addEventListener('pointerdown',cancelActionIfOtherTarget,true);
+document.addEventListener('touchstart',cancelActionIfOtherTarget,{capture:true,passive:true});
+document.addEventListener('click',cancelActionIfOtherTarget,true);
+window.addEventListener('blur',cancelPendingActionTap);
+$('reroll').addEventListener('click',()=>{if(!rerolling)doubleTapAction($('reroll'),requestReroll)});
+$('giveup').addEventListener('click',()=>doubleTapAction($('giveup'),requestGiveUp));
 $('sound').addEventListener('click',()=>{audioOn=!audioOn;$('sound').textContent=`音：${audioOn?'ON':'OFF'}`;$('sound').setAttribute('aria-pressed',String(audioOn))});
 window.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(phase==='playing'){cancelAnimationFrame(raf);tick()}});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&selected>=0){if(cells[selected])cells[selected].classList.remove('selected');selected=-1;}});
