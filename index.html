@@ -11,7 +11,7 @@
 <meta name="description" content="四川省・二角取りの非公式再現ゲーム。iPad、PC、Androidブラウザでタッチ操作可能。">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>四川省 v9.2 - iPad Safari互換版</title>
+<title>四川省 v9.3 - iPad Safari互換版</title>
 <style>
 *{box-sizing:border-box}
 :root{color-scheme:dark;font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif}
@@ -192,7 +192,9 @@ function choose(i){if(phase!=='playing'||rerolling||board[i]===null)return;
    score+=bonus;recordBest();showGain(points+bonus);finish('clear',bonus);return;
   }
  }else{
-  score-=500;combo=0;showGain(-500);playTone(185,.11);setStatus('ミス：-500点 ／ 連続消去リセット');
+  const penalty=Math.min(500,score);score=Math.max(0,score-500);combo=0;
+  if(penalty>0)showGain(-penalty);else{$('gain').classList.remove('visible');clearTimeout(gainTimer)}
+  playTone(185,.11);setStatus(penalty>0?`ミス：-${penalty}点 ／ 連続消去リセット`:'ミス：0点のため減点なし ／ 連続消去リセット');
   for(const pos of [a,i])cells[pos].classList.add('miss');
   setTimeout(()=>{if(cells[a])cells[a].classList.remove('miss');if(cells[i])cells[i].classList.remove('miss')},180);
  }
