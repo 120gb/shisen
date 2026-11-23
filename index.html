@@ -304,7 +304,34 @@ if((/iPad|iPhone|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacInt
 $('mainButton').addEventListener('click',()=>{
  requestMobileImmersion();startGame(true);
 });
-$('reroll').addEventListener('click',requestReroll);
+// Accidental-reset guard: two consecutive taps on the same button are required.
+// There is no confirmation dialog; another tap anywhere cancels the first tap.
+const REROLL_DOUBLE_TAP_WINDOW=1200;
+let rerollFirstTapAt=0,rerollTapTimer=0;
+function cancelRerollTap(){
+ rerollFirstTapAt=0;
+ if(rerollTapTimer){clearTimeout(rerollTapTimer);rerollTapTimer=0;}
+}
+function confirmRerollTap(){
+ if(phase!=='playing'||rerolling){cancelRerollTap();return;}
+ const now=Date.now();
+ if(rerollFirstTapAt>0&&now-rerollFirstTapAt<=REROLL_DOUBLE_TAP_WINDOW){
+  cancelRerollTap();
+  requestReroll();
+ }else{
+  cancelRerollTap();
+  rerollFirstTapAt=now;
+  rerollTapTimer=setTimeout(cancelRerollTap,REROLL_DOUBLE_TAP_WINDOW);
+ }
+}
+function cancelRerollIfOtherTarget(event){
+ if(rerollFirstTapAt&&!$('reroll').contains(event.target))cancelRerollTap();
+}
+document.addEventListener('pointerdown',cancelRerollIfOtherTarget,true);
+document.addEventListener('touchstart',cancelRerollIfOtherTarget,{capture:true,passive:true});
+document.addEventListener('click',cancelRerollIfOtherTarget,true);
+window.addEventListener('blur',cancelRerollTap);
+$('reroll').addEventListener('click',confirmRerollTap);
 $('sound').addEventListener('click',()=>{audioOn=!audioOn;$('sound').textContent=`音：${audioOn?'ON':'OFF'}`;$('sound').setAttribute('aria-pressed',String(audioOn))});
 window.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(phase==='playing'){cancelAnimationFrame(raf);tick()}});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&selected>=0){if(cells[selected])cells[selected].classList.remove('selected');selected=-1;}});
