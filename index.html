@@ -11,7 +11,7 @@
 <meta name="description" content="四川省・二角取りの非公式再現ゲーム。iPad、PC、Androidブラウザでタッチ操作可能。">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>四川省 v9.1 - iPad Safari互換版</title>
+<title>四川省 v9.2 - iPad Safari互換版</title>
 <style>
 *{box-sizing:border-box}
 :root{color-scheme:dark;font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif}
@@ -99,6 +99,25 @@ function updateEdges(){
   el.classList.toggle('top-open',r===0||board[i-COLS]===null);
  }
 }
+// Standard sequential taps and simultaneous two-finger taps use the same path.
+let lastTouchInput=0;
+const activeTouchIds=new Set();
+boardEl.addEventListener('touchstart',ev=>{
+  if(ev.cancelable)ev.preventDefault();
+  lastTouchInput=Date.now();
+  for(const touch of ev.changedTouches){
+    if(activeTouchIds.has(touch.identifier))continue;
+    activeTouchIds.add(touch.identifier);
+    const hit=document.elementFromPoint(touch.clientX,touch.clientY);
+    const el=hit&&hit.closest?hit.closest('.tile'):null;
+    if(!el||!boardEl.contains(el))continue;
+    const pos=Number(el.dataset.tileIndex);
+    if(Number.isInteger(pos)&&pos>=0&&pos<N)choose(pos);
+  }
+},{passive:false});
+function clearTouchIds(ev){for(const t of ev.changedTouches)activeTouchIds.delete(t.identifier)}
+boardEl.addEventListener('touchend',clearTouchIds,{passive:true});
+boardEl.addEventListener('touchcancel',clearTouchIds,{passive:true});
 function render(){
  const frag=document.createDocumentFragment();cells=[];
  for(let i=0;i<N;i++){
@@ -110,20 +129,19 @@ function render(){
    glyph.className='glyph';glyph.src=ICONS[board[i]];glyph.alt='';glyph.draggable=false;
    glyph.setAttribute('aria-hidden','true');el.appendChild(glyph);
   }
-  // Each touch contact is processed at pointer-down, not after lifting the finger.
-  // This allows two different tiles to be touched at the same instant.
+  
+  // Each physical contact is handled once. Touch events are delegated to the board.
+  el.dataset.tileIndex=String(i);
   el.addEventListener('pointerdown',ev=>{
-   if(ev.pointerType==='touch'||ev.pointerType==='pen'){
-    ev.preventDefault();choose(i);
-   }
+    if(ev.pointerType==='touch')return;
+    if(ev.pointerType==='mouse'&&ev.button!==0)return;
+    choose(i); // mouse or pen
   });
   el.addEventListener('click',ev=>{
-   // A touch-generated click must not activate a tile twice.
-   if(ev.detail===0||ev.pointerType==='mouse'||(!window.PointerEvent))choose(i);
+    // Safari can produce a synthetic click with detail 0 after touching a tile.
+    if(Date.now()-lastTouchInput<800)return;
+    if(ev.detail===0||!window.PointerEvent)choose(i); // keyboard/legacy mouse
   });
-  if(!window.PointerEvent)el.addEventListener('touchstart',ev=>{
-   ev.preventDefault();for(const touch of ev.changedTouches)choose(i);
-  },{passive:false});
   frag.appendChild(el);cells.push(el);
  }
  boardEl.replaceChildren(frag);updateEdges();updateHud();
