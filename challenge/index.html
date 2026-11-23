@@ -11,7 +11,7 @@
 <meta name="description" content="四川省の80秒ゲームを最大100回プレイし、累計100万点を目指す競技版。記録表と統計を常時表示。">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="../icon.svg">
-<title>四川省 100万点チャレンジ | 競技版</title>
+<title>四川省 100万点チャレンジ | プレイ中は通常版と同じ全画面</title>
 <style>
 *{box-sizing:border-box}
 :root{color-scheme:dark;font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif}
@@ -80,6 +80,45 @@ main{position:absolute;inset:0;width:100%;height:100%;padding:env(safe-area-inse
 .contest-reset:focus-visible{outline:2px solid #ffb84d}
 @media(max-height:480px){.contest-panel{gap:2px;padding:3px 5px}.contest-stat{min-height:20px;padding:2px 3px}.contest-heading{font-size:11px}.contest-footer{min-height:20px}.contest-progressline{margin-top:2px}}
 @media(max-width:780px) and (orientation:landscape){.contest-layout{grid-template-columns:minmax(0,60fr) minmax(0,40fr)}}
+
+/* The original 17x8 game occupies exactly its original full viewport while playing.
+   Show the 100-score sheet as a separate full-screen results view after the round. */
+.contest-layout{display:block;position:relative;width:100%;height:100%;overflow:hidden}
+.contest-layout>.play-row{width:100%;height:100%;min-width:0}
+.contest-layout>.contest-panel{position:absolute;inset:0;z-index:10;width:100%;height:100%;min-height:0;max-height:100%;overflow:hidden;display:flex;flex-direction:column;
+background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;gap:clamp(3px,.7vh,8px)}
+.contest-layout>.contest-panel[hidden]{display:none!important}
+.contest-round-summary{flex:0 0 auto;display:flex;align-items:baseline;justify-content:center;gap:clamp(6px,1.5vw,25px);min-height:0;white-space:nowrap}
+#contestLastTitle{color:#ffa13a;font-size:clamp(12px,2.0vw,27px)}
+#contestLastScore{font:900 clamp(16px,2.9vw,38px)/1 ui-monospace,monospace;color:#ffcc7b}
+#contestLastInfo{font-size:clamp(9px,1.15vw,16px);color:#d7d7d7}
+.contest-panel .contest-heading{font-size:clamp(12px,1.7vw,25px)}
+.contest-panel .contest-progressline{font-size:clamp(10px,1.2vw,16px)}
+.contest-panel .contest-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(3px,.6vw,8px)}
+.contest-panel .contest-stat{min-height:clamp(25px,5vh,46px);padding:clamp(3px,.5vw,8px);gap:6px}
+.contest-panel .stat-title{font-size:clamp(9px,1.15vw,15px)}
+.contest-panel .stat-value{font-size:clamp(13px,2vw,25px);letter-spacing:-.04em}
+.contest-panel .record-heading{font-size:clamp(10px,1.2vw,15px)}
+.contest-panel .record-grid{flex:1 1 0;min-height:0;grid-template-columns:repeat(10,minmax(0,1fr));grid-template-rows:repeat(10,minmax(0,1fr));gap:clamp(1px,.25vw,4px);overflow:hidden}
+.contest-panel .record-cell{gap:clamp(1px,.25vh,3px)}
+.contest-panel .record-cell .record-number{font-size:clamp(8px,1.1vw,13px)}
+.contest-panel .record-cell .record-score{font-size:clamp(9px,1.4vw,17px);letter-spacing:-.035em}
+.contest-panel .contest-footer{min-height:clamp(28px,6vh,48px);gap:8px}
+.contest-panel #contestState{font-size:clamp(10px,1.35vw,18px)}
+.contest-buttons{display:flex;flex:0 0 auto;align-items:center;gap:clamp(5px,.7vw,10px)}
+.contest-panel .contest-reset{font-size:clamp(9px,1.05vw,14px);min-height:30px;padding:5px 9px}
+.contest-next{border:1px solid #f3b460;border-radius:5px;background:#ed841e;color:#120f0b;font:900 clamp(12px,1.3vw,19px)/1.15 system-ui,sans-serif;min-height:36px;padding:5px clamp(12px,2vw,27px);touch-action:manipulation;cursor:pointer}
+.contest-next:focus-visible{outline:3px solid #fff}
+@media(max-height:440px){
+ .contest-layout>.contest-panel{padding:3px 6px;gap:2px}
+ .contest-round-summary{gap:8px}
+ .contest-panel .contest-stat{min-height:22px;padding:2px 4px}
+ .contest-panel .contest-footer{min-height:30px}
+ .contest-panel .contest-reset{min-height:25px}
+ .contest-next{min-height:29px}
+ .contest-panel .record-cell .record-number{font-size:8px}
+ .contest-panel .record-cell .record-score{font-size:10px}
+}
 </style></head><body><div id="landscapeStage"><main><div class="contest-layout"><div class="play-row" id="playRow">
 <nav class="side-rail rail-left" id="leftRail" aria-label="音声の操作"><button class="action" id="sound" type="button" aria-pressed="false">音：OFF</button></nav>
 <div class="game" id="game" role="region" aria-label="四川省ゲーム">
@@ -96,7 +135,8 @@ main{position:absolute;inset:0;width:100%;height:100%;padding:env(safe-area-inse
 </div>
 <nav class="side-rail rail-right" id="rightRail" aria-label="盤面の操作"><button class="action" id="reroll" type="button" disabled aria-label="盤面リセット（残り時間維持）"><span>盤面リセット</span><span class="small">時間維持</span></button></nav>
 <div id="status" role="status" aria-live="polite"></div>
-</div><aside class="contest-panel" id="contestPanel" aria-label="100万点チャレンジ得点表">
+</div><aside class="contest-panel" id="contestPanel" aria-label="100万点チャレンジ得点表" hidden>
+ <div class="contest-round-summary" aria-live="polite"><strong id="contestLastTitle">プレイ結果</strong><strong id="contestLastScore">0点</strong><span id="contestLastInfo">80秒終了</span></div>
  <header class="contest-header">
   <div class="contest-heading">四川省 <strong>100万点チャレンジ</strong></div>
   <div class="contest-progressline"><span id="contestProgressLabel">0 / 1,000,000点</span><span id="contestRoundLabel">0 / 100回</span></div>
@@ -112,7 +152,7 @@ main{position:absolute;inset:0;width:100%;height:100%;padding:env(safe-area-inse
  <div class="record-grid" id="recordGrid" role="list" aria-label="100回分の得点記録"></div>
  <div class="contest-footer">
   <span id="contestState">100万点を目指してスタート</span>
-  <button type="button" id="contestReset" class="contest-reset" aria-label="100回の記録を全消去して最初から開始">記録を初期化</button>
+  <div class="contest-buttons"><button type="button" id="contestReset" class="contest-reset" aria-label="100回の記録を全消去して最初から開始">記録を初期化</button><button type="button" id="contestNext" class="contest-next">次のゲーム</button></div>
  </div>
 </aside></div></main></div><script>
 window.addEventListener('error',function(e){
@@ -199,12 +239,23 @@ function renderContest(){
    'あと'+formatted(Math.max(0,CONTEST_TARGET-st.total))+'点でクリア';
  $('contestState').textContent=label+(contestSavedOk?'':'（保存不可）');
 }
+function showContestResults(reason){
+ const st=contestStats();
+ const last=contestEntries[st.count-1]||null;
+ $('contestLastTitle').textContent=st.won?'100万点達成！':st.exhausted?'100回終了':st.count+'回目の結果';
+ $('contestLastScore').textContent=last?formatted(last.score)+'点':'—';
+ $('contestLastInfo').textContent=last?(last.clear?'全消し':'80秒終了'):'大会成績';
+ $('contestNext').textContent=st.won||st.exhausted?'新しい大会を開始':'次のゲーム';
+ overlay.hidden=true;
+ $('contestPanel').hidden=false;
+}
 function recordContestRound(reason){
  if(contestOver())return contestStats();
  contestEntries.push({score:Math.max(0,Math.round(score)),clear:reason==='clear',time:Date.now()});
  saveContest();renderContest();return contestStats();
 }
 function resetContestSession(){
+ $('contestPanel').hidden=true;
  stopTimers();contestEntries=[];saveContest();
  phase='ready';rerolling=false;rerollDue=0;selected=-1;score=0;combo=0;remaining=DURATION;
  $('rerollMessage').hidden=true;$('reroll').disabled=true;
@@ -337,6 +388,7 @@ function stopTimers(){cancelAnimationFrame(raf);clearTimeout(rerollTimer);reroll
 function clearOverlay(){overlay.hidden=true;$('resultScore').hidden=true;}
 function startGame(fresh=true){
  if(contestOver())return;
+ $('contestPanel').hidden=true;
  stopTimers();phase='playing';rerolling=false;rerollDue=0;$('rerollMessage').hidden=true;$('reroll').disabled=false;selected=-1;score=0;combo=0;remaining=DURATION;
  if(fresh||original.length!==N)original=newPlayableBoard();board=original.slice();render();clearOverlay();setStatus('同じ絵柄の牌を2枚タップ（2本指でも操作できます）');$('gain').classList.remove('visible');
  deadline=Date.now()+DURATION*1000;raf=requestAnimationFrame(tick);
@@ -379,6 +431,7 @@ function finish(reason,bonus){if(phase!=='playing')return;
    (contest.won?' ／ 目標達成':contest.exhausted?' ／ 目標未達':'');
  $('resultScore').textContent=`${formatted(score)} 点`;$('resultScore').hidden=false;
  $('mainButton').textContent=contest.won||contest.exhausted?'新しい大会を開始':'次のゲーム';overlay.hidden=false;
+ showContestResults(reason);
  setStatus(`最終得点：${formatted(score)}点 ／ 最高記録：${formatted(bestScore)}点`);
  // 次ゲームはプレイヤーがボタンを押した場合にのみ開始する。
 }
@@ -443,6 +496,14 @@ $('mainButton').addEventListener('click',()=>{
  startGame(true);
 });
 $('contestReset').addEventListener('click',confirmResetContest);
+$('contestNext').addEventListener('click',()=>{
+ requestMobileImmersion();
+ if(contestOver()){
+  if(!window.confirm('現在の大会記録をすべて消して、新しい大会を開始しますか？'))return;
+  resetContestSession();
+ }
+ startGame(true);
+});
 $('reroll').addEventListener('click',requestReroll);
 $('sound').addEventListener('click',()=>{audioOn=!audioOn;$('sound').textContent=`音：${audioOn?'ON':'OFF'}`;$('sound').setAttribute('aria-pressed',String(audioOn))});
 window.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(phase==='playing'){cancelAnimationFrame(raf);tick()}});
@@ -457,6 +518,7 @@ if(contestOver()){
  $('dialogTitle').textContent='四川省 100万点チャレンジ';
  $('dialogText').textContent='80秒のゲームを最大100回プレイして累計100万点を目指します。盤面リセットは回数に入りません。全消しは時間ボーナス込みで記録。'+(contestEntries.length?'　記録を再開：'+contestEntries.length+'回終了':'');
 }
+if(contestEntries.length)showContestResults('resume');
 setStatus('ゲーム開始を押してください');
 if('serviceWorker' in navigator&&location.protocol==='https:'){
  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
