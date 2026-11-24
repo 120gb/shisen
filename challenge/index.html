@@ -597,7 +597,7 @@ function resetContestSession(){
  stopTimers();contestEntries=TEST_500K?TEST_500K_ENTRIES():[];saveContest();
  phase='ready';rerolling=false;rerollDue=0;selected=-1;score=0;combo=0;remaining=DURATION;
  $('rerollMessage').hidden=true;$('reroll').disabled=true;$('giveup').disabled=true;cancelPendingActionTap();
- original=newPlayableBoard();board=original.slice();render();renderContest();
+ original=newPlayableBoard();board=original.slice();render();renderContest();if(TEST_500K)document.querySelector('.score-label').textContent='TOTAL:';
  $('dialogTitle').textContent='100万点チャレンジ';
  $('dialogText').textContent=TEST_500K?'【50万点到達テスト】累計499,999点から開始。牌を1組消して100点以上を取り、ギブアップを2回タップすると結果確定時にガブリエル演出が始まります。通常記録には保存されません。':'80秒ごとに得点を記録し、最大100回で累計100万点を目指します。全消しは残り時間ボーナス込みで記録。盤面リセットは回数に含まれません。';
  $('resultScore').hidden=true;$('mainButton').textContent='ゲーム開始';overlay.hidden=false;
@@ -612,7 +612,7 @@ function makeBoard(){const a=[];for(let id=0;id<34;id++)for(let k=0;k<4;k++)a.pu
 function formatted(n){return Math.round(n).toLocaleString('ja-JP')}
 function bonusForPair(n){return 100*(1+Math.floor(n/5))}
 function setStatus(txt){$('status').textContent=txt}
-function updateHud(){ $('time').textContent=Math.max(0,Math.ceil(remaining));$('score').textContent=formatted(score);$('timeFill').style.width=`${Math.max(0,Math.min(100,remaining/DURATION*100))}%`; }
+function updateHud(){ $('time').textContent=Math.max(0,Math.ceil(remaining));$('score').textContent=formatted(TEST_500K?contestStats().total+score:score);$('timeFill').style.width=`${Math.max(0,Math.min(100,remaining/DURATION*100))}%`; }
 function updateEdges(){
  for(let i=0;i<N;i++){
   const el=cells[i];if(!el)continue;
@@ -730,7 +730,7 @@ function startGame(fresh=true){
  millionClose();stopGabriel();
  $('contestPanel').hidden=true;
  stopTimers();phase='playing';rerolling=false;rerollDue=0;$('rerollMessage').hidden=true;$('reroll').disabled=false;$('giveup').disabled=false;cancelPendingActionTap();selected=-1;score=0;combo=0;remaining=DURATION;
- if(fresh||original.length!==N)original=newPlayableBoard();board=original.slice();render();clearOverlay();setStatus('同じ絵柄の牌を2枚タップ（2本指でも操作できます）');$('gain').classList.remove('visible');
+ if(fresh||original.length!==N)original=newPlayableBoard();board=original.slice();render();clearOverlay();if(TEST_500K)document.querySelector('.score-label').textContent='TOTAL:';setStatus('同じ絵柄の牌を2枚タップ（2本指でも操作できます）');$('gain').classList.remove('visible');
  deadline=Date.now()+DURATION*1000;raf=requestAnimationFrame(tick);
 }
 function finishReroll(){
@@ -777,7 +777,7 @@ function finish(reason,bonus){if(phase!=='playing')return;
  $('dialogTitle').textContent=contest.won?'100万点達成！':contest.exhausted?'100回終了':reason==='timeout'?'TIME UP':reason==='giveup'?'ギブアップ':'全消し！';
  $('dialogText').textContent=resultDetail+' ／ '+contest.count+'回目　累計 '+formatted(contest.total)+'点'+
    (contest.won?' ／ 目標達成':contest.exhausted?' ／ 目標未達':'');
- $('resultScore').textContent=`${formatted(score)} 点`;$('resultScore').hidden=false;
+ $('resultScore').textContent=`${formatted(TEST_500K?contest.total:score)} 点`;$('resultScore').hidden=false;
  $('mainButton').textContent=contest.won||contest.exhausted?'新しい大会を開始':'次のゲーム';overlay.hidden=false;
  if(contest.won)millionOpen(true);
  else{showContestResults(reason);if(gabrielMilestone)showGabriel();}
