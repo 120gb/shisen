@@ -959,6 +959,7 @@ else if(contestEntries.length)showContestResults('resume');
 if(new URLSearchParams(location.search).get('gabriel_preview')==='1'){
  // Ephemeral demo data; never write it to localStorage or change saved results.
  const savedEntries=contestEntries;
+ if(!$('millionScreen').hidden)millionClose();
  contestEntries=Array.from({length:25},(_,i)=>({score:20000,clear:i%7===0,reason:i%7===0?'clear':'timeout',time:0}));
  renderContest();showContestResults('preview');showGabriel();
  contestEntries=savedEntries;
