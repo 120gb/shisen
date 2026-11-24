@@ -164,6 +164,20 @@ background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;
  .gabriel-music{opacity:0}
 }
 @media(max-height:440px){.gabriel-speech{top:6%;font-size:clamp(19px,3.2vw,32px);padding:7px 12px}.gabriel-speech::after{width:14px;height:14px;bottom:-13px}.gabriel-fly{width:min(28vw,58vh)}}
+
+/* One-million completion: independent full-size scene; results sheet stays hidden. */
+.million-screen{position:absolute;inset:0;z-index:50;background:#070b1a;overflow:hidden;touch-action:manipulation}
+.million-screen[hidden],.million-buttons[hidden]{display:none!important}
+#millionCanvas{display:block;width:100%;height:100%;object-fit:contain}
+.million-buttons{position:absolute;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:center;gap:clamp(8px,1.65vw,26px);padding:0 12px;z-index:3}
+.million-button{appearance:none;touch-action:manipulation;cursor:pointer;border-radius:12px;min-height:clamp(36px,7.2vh,62px);
+ padding:8px clamp(12px,2.3vw,30px);font:800 clamp(12px,1.5vw,21px)/1.2 system-ui,sans-serif;box-shadow:0 5px 18px #0008;
+ transition:filter .16s ease,transform .16s ease;white-space:nowrap}
+.million-button:active{transform:scale(.97)}
+.million-button:focus-visible{outline:3px solid #fff3a6;outline-offset:2px}
+.million-capture{border:1px solid #90a3bf;background:rgba(12,21,42,.96);color:#fff}
+.million-restart{border:1px solid #ffe39c;background:linear-gradient(180deg,#ffe5a3,#e8a74a);color:#201203}
+@media(max-height:410px){.million-buttons{bottom:4px}.million-button{min-height:30px;padding:5px 12px}}
 </style></head><body><div id="landscapeStage"><main><div class="contest-layout"><div class="play-row" id="playRow">
 <nav class="side-rail rail-left" id="leftRail" aria-label="ギブアップと音声の操作"><button class="action" id="giveup" type="button" disabled aria-label="ギブアップ（2回連続タップで現在の得点を確定）"><span>ギブアップ</span><span class="small">2回タップ</span></button><button class="action" id="sound" type="button" aria-pressed="false">音：OFF</button></nav>
 <div class="game" id="game" role="region" aria-label="四川省ゲーム">
@@ -252,7 +266,13 @@ background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;
   </div>
   <div class="gabriel-speech" aria-label="50万到達！"><span class="gabriel-note" aria-hidden="true">♫</span>50万到達！</div>
   <div class="gabriel-music" aria-hidden="true">♪ ♫ ♪</div>
-</div></div></main></div><script>
+</div><section id="millionScreen" class="million-screen" hidden aria-label="100万点達成の最終結果">
+ <canvas id="millionCanvas" aria-label="100万点達成。合計プレイ数、累計得点、平均点数、最高得点" role="img"></canvas>
+ <div id="millionButtons" class="million-buttons" hidden>
+  <button id="millionScreenshot" type="button" class="million-button million-capture" aria-label="結果画像をPNGで保存"><span aria-hidden="true">▣</span> 結果をスクショ</button>
+  <button id="millionRestart" type="button" class="million-button million-restart" aria-label="大会記録を消去して最初から開始"><span aria-hidden="true">↻</span> リセットしてはじめから</button>
+ </div>
+</section></div></main></div><script>
 window.addEventListener('error',function(e){
  const status=document.getElementById('status');
  if(status){status.style.position='fixed';status.style.inset='auto 10px 10px';status.style.width='auto';status.style.height='auto';status.style.clipPath='none';status.style.zIndex='10';status.style.padding='8px';status.style.background='#5b1818';status.style.color='#fff';status.style.whiteSpace='normal';status.textContent='iPadのブラウザでエラーが発生しました: '+String(e.message||'不明なエラー');}
@@ -379,6 +399,207 @@ function showGabriel(){
  const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
  gabrielTimer=setTimeout(stopGabriel,reduced?2400:GABRIEL_ANIMATION_MS);
 }
+
+// Million-point finale. Canvas renders the actual falling tile images, fireworks,
+// and every final score, so the shareable PNG is a true capture of the final scene.
+const MILLION_RAIN_END=3100,MILLION_FIREWORKS_END=7800;
+let millionRAF=0,millionRunning=false,millionStart=0,millionLastFrame=0;
+let millionTiles=[],millionParticles=[],millionBurstNext=0,millionImages=[],millionSizeW=0,millionSizeH=0;
+const millionCanvas=$('millionCanvas'),millionCtx=millionCanvas.getContext('2d');
+function millionRand(min,max){return min+Math.random()*(max-min)}
+function millionResize(){
+ const rect=millionCanvas.getBoundingClientRect();
+ const w=Math.max(1,rect.width),h=Math.max(1,rect.height);
+ // Limit backing pixels for iPad and phones while keeping exported PNG crisp.
+ const scale=Math.min(window.devicePixelRatio||1,2,1920/w,1200/h);
+ millionCanvas.width=Math.round(w*scale);millionCanvas.height=Math.round(h*scale);
+ millionSizeW=millionCanvas.width;millionSizeH=millionCanvas.height;
+}
+function millionInitSprites(){
+ if(millionImages.length)return;
+ for(let i=0;i<ICONS.length;i++){
+  const image=new Image();image.src=ICONS[i];millionImages.push(image);
+ }
+}
+function millionCreateTiles(){
+ millionTiles=[];millionInitSprites();
+ const w=millionSizeW,h=millionSizeH,unit=Math.max(19,Math.min(w/32,h/11));
+ for(let i=0;i<116;i++){
+  const delay=millionRand(0,1250),speed=(h+unit*4)/millionRand(1250,1880);
+  millionTiles.push({x:millionRand(-unit,w+unit),y:-unit*2,delay,speed,spin:millionRand(-.010,.010),
+   size:unit*millionRand(.6,1.35),angle:millionRand(-3,3),wind:millionRand(-.13,.13),
+   image:millionImages[Math.floor(Math.random()*millionImages.length)]});
+ }
+}
+function millionLaunchBurst(now){
+ const w=millionSizeW,h=millionSizeH;
+ const x=millionRand(.1*w,.9*w),y=millionRand(.10*h,.65*h);
+ const palettes=[['#ffc35a','#fff7c6','#ef8a4b'],['#89c9ff','#d7f3ff','#619dff'],['#ff9dac','#fff1ec','#ff597b'],['#ddadff','#fff2fa','#bc7bff']];
+ const colors=palettes[Math.floor(Math.random()*palettes.length)];
+ const count=70,spd=Math.max(25,Math.min(w,h)*.00042);
+ for(let j=0;j<count;j++){
+  const a=(Math.PI*2*j)/count+millionRand(-.05,.05),v=spd*millionRand(.68,1.42);
+  millionParticles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,age:0,ttl:millionRand(950,1680),
+   color:colors[j%colors.length],radius:millionRand(1.2,2.8)*Math.max(.7,w/1000)});
+ }
+ // Limit particle history on long-running tabs.
+ if(millionParticles.length>950)millionParticles.splice(0,millionParticles.length-950);
+}
+function millionBackdrop(ctx,w,h,final){
+ const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#060b1e');bg.addColorStop(.6,'#111633');bg.addColorStop(1,'#050916');
+ ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+ const glow=ctx.createRadialGradient(w*.5,h*.45,1,w*.5,h*.45,w*.72);
+ glow.addColorStop(0,'rgba(88,90,139,.3)');glow.addColorStop(1,'rgba(6,10,22,0)');
+ ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+ // Stable glints remain in the completed PNG after all fireworks end.
+ const count=70;
+ for(let i=0;i<count;i++){
+  const x=((i*173.17+41)%997)/997*w,y=((i*389.71+83)%997)/997*h;
+  ctx.globalAlpha=.15+((i*7)%10)/20;
+  ctx.fillStyle=i%4?'#c2d5ff':'#ffdf89';ctx.beginPath();ctx.arc(x,y,(i%3+1)*w/1700,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+ if(final){
+  const upper=ctx.createRadialGradient(w*.5,h*.08,2,w*.5,h*.08,w*.5);
+  upper.addColorStop(0,'rgba(255,186,67,.20)');upper.addColorStop(1,'rgba(255,186,67,0)');
+  ctx.fillStyle=upper;ctx.fillRect(0,0,w,h);
+ }
+}
+function millionDrawRain(ctx,elapsed){
+ const w=millionSizeW,h=millionSizeH;
+ for(const t of millionTiles){
+  const local=elapsed-t.delay;
+  if(local<0)continue;
+  const y=t.y+t.speed*local,x=t.x+t.wind*local;
+  if(y>h+t.size*2)continue;
+  ctx.save();ctx.translate(x,y);ctx.rotate(t.angle+t.spin*local);
+  ctx.fillStyle='#f3eee6';ctx.fillRect(-t.size*.38,-t.size*.53,t.size*.76,t.size*1.06);
+  ctx.strokeStyle='#a6b8c5';ctx.lineWidth=Math.max(1,t.size*.035);
+  ctx.strokeRect(-t.size*.38,-t.size*.53,t.size*.76,t.size*1.06);
+  if(t.image.complete&&t.image.naturalWidth){
+   ctx.drawImage(t.image,-t.size*.33,-t.size*.48,t.size*.66,t.size*.96);
+  }
+  ctx.restore();
+ }
+}
+function millionFireworks(ctx,dt,elapsed){
+ if(elapsed<MILLION_RAIN_END)return;
+ if(elapsed<MILLION_FIREWORKS_END){
+  while(elapsed>=millionBurstNext){
+   millionLaunchBurst(elapsed);
+   millionBurstNext+=millionRand(230,480);
+  }
+ }
+ // Use a transparent fade over the scene rather than a separate screen transition.
+ const delta=Math.min(65,Math.max(0,dt));
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ for(let i=millionParticles.length-1;i>=0;i--){
+  const p=millionParticles[i];p.age+=delta;
+  if(p.age>=p.ttl){millionParticles.splice(i,1);continue;}
+  const d=delta/16.67;p.x+=p.vx*d;p.y+=p.vy*d;p.vy+=.009*d;
+  const alpha=Math.max(0,1-p.age/p.ttl),r=p.radius*(.6+alpha);
+  ctx.globalAlpha=alpha*.95;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=Math.max(5,millionSizeW*.008);
+  ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();
+ }
+ ctx.restore();
+}
+function millionDrawStats(ctx,elapsed){
+ if(elapsed<3500)return;
+ const st=contestStats(),w=millionSizeW,h=millionSizeH;
+ const show=Math.min(1,(elapsed-3500)/900);
+ ctx.save();ctx.globalAlpha=show;
+ const base=Math.min(w/17,h/10.2),cx=w*.5;
+ ctx.textAlign='center';ctx.textBaseline='middle';
+ ctx.shadowColor='rgba(255,203,91,.50)';ctx.shadowBlur=base*.46;
+ ctx.fillStyle='#ffe0a0';ctx.font='900 '+Math.round(base*.56)+'px system-ui,sans-serif';
+ ctx.fillText('CHALLENGE CLEAR!',cx,h*.125);
+ ctx.shadowBlur=0;
+ ctx.fillStyle='#e8edf9';ctx.font='700 '+Math.round(base*.36)+'px system-ui,sans-serif';
+ ctx.fillText('PLAY COUNT',cx,h*.25);
+ ctx.fillStyle='#ffffff';ctx.font='900 '+Math.round(base*.9)+'px system-ui,sans-serif';
+ ctx.fillText(st.count+' PLAY',cx,h*.345);
+ ctx.fillStyle='#ffcf66';ctx.font='900 '+Math.round(base*.62)+'px system-ui,sans-serif';
+ ctx.fillText('TOTAL',cx,h*.467);
+ ctx.shadowColor='#d39335';ctx.shadowBlur=base*.34;
+ ctx.font='900 '+Math.round(base*1.48)+'px system-ui,sans-serif';
+ ctx.fillText(formatted(st.total),cx,h*.585);
+ ctx.shadowBlur=0;
+ const sideX=[w*.31,w*.69],valY=h*.773,labY=h*.686;
+ ctx.fillStyle='#dee7f7';ctx.font='800 '+Math.round(base*.43)+'px system-ui,sans-serif';
+ ctx.fillText('AVERAGE',sideX[0],labY);
+ ctx.fillText('BESTSCORE',sideX[1],labY);
+ ctx.fillStyle='#fff';ctx.font='900 '+Math.round(base*.83)+'px system-ui,sans-serif';
+ ctx.fillText(formatted(Math.round(st.average)),sideX[0],valY);
+ ctx.fillText(formatted(st.best),sideX[1],valY);
+ ctx.restore();
+}
+function millionFrame(now){
+ if(!millionRunning)return;
+ const elapsed=now-millionStart,dt=now-millionLastFrame;
+ millionLastFrame=now;
+ const ctx=millionCtx,w=millionSizeW,h=millionSizeH;
+ if(w<2||h<2){millionRAF=requestAnimationFrame(millionFrame);return}
+ millionBackdrop(ctx,w,h,elapsed>=MILLION_FIREWORKS_END);
+ millionDrawRain(ctx,elapsed);
+ millionFireworks(ctx,dt,elapsed);
+ millionDrawStats(ctx,elapsed);
+ if(elapsed<MILLION_FIREWORKS_END+1400){
+  millionRAF=requestAnimationFrame(millionFrame);
+ }else{
+  millionRunning=false;millionRAF=0;
+  // Paint a stable, screenshot-ready final results frame with clear text.
+  millionBackdrop(ctx,w,h,true);millionDrawStats(ctx,99999);
+  $('millionButtons').hidden=false;
+ }
+}
+function millionStopAnimation(){
+ if(millionRAF)cancelAnimationFrame(millionRAF);
+ millionRAF=0;millionRunning=false;
+}
+function millionOpen(animated){
+ stopGabriel();millionStopAnimation();
+ $('contestPanel').hidden=true;overlay.hidden=true;$('millionScreen').hidden=false;
+ $('millionButtons').hidden=!!animated;
+ millionResize();millionParticles=[];millionBurstNext=MILLION_RAIN_END;
+ if(animated){
+  millionCreateTiles();
+  millionRunning=true;millionStart=performance.now();millionLastFrame=millionStart;
+  millionRAF=requestAnimationFrame(millionFrame);
+ }else{
+  millionBackdrop(millionCtx,millionSizeW,millionSizeH,true);
+  millionDrawStats(millionCtx,99999);
+ }
+}
+function millionClose(){
+ millionStopAnimation();$('millionScreen').hidden=true;$('millionButtons').hidden=true;
+}
+function millionScreenshot(){
+ // Repaint a clean standalone result at high enough resolution: no buttons.
+ const exportCanvas=document.createElement('canvas'),ctx=exportCanvas.getContext('2d');
+ exportCanvas.width=1600;exportCanvas.height=900;
+ if(!ctx)return;
+ const oldW=millionSizeW,oldH=millionSizeH;
+ millionSizeW=1600;millionSizeH=900;
+ millionBackdrop(ctx,1600,900,true);millionDrawStats(ctx,99999);
+ millionSizeW=oldW;millionSizeH=oldH;
+ const filename='四川省_100万点達成_'+contestStats().count+'PLAY.png';
+ const fallback=()=>{
+  try{const a=document.createElement('a');a.href=exportCanvas.toDataURL('image/png');a.download=filename;
+   document.body.appendChild(a);a.click();a.remove()}catch(_){setStatus('画像保存に失敗しました')}
+ };
+ if(exportCanvas.toBlob&&navigator.share&&navigator.canShare&&window.File){
+  exportCanvas.toBlob(blob=>{
+   if(!blob){fallback();return;}
+   const file=new File([blob],filename,{type:'image/png'});
+   if(navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:'四川省 100万点チャレンジ'}).catch(err=>{
+     if(err&&err.name!=='AbortError')fallback();
+    });
+   }else fallback();
+  },'image/png');
+ }else fallback();
+}
+
 function showContestResults(reason){
  const st=contestStats();
  const last=contestEntries[st.count-1]||null;
@@ -395,7 +616,7 @@ function recordContestRound(reason){
  saveContest();renderContest();return contestStats();
 }
 function resetContestSession(){
- stopGabriel();
+ millionClose();stopGabriel();
  $('contestPanel').hidden=true;
  stopTimers();contestEntries=[];saveContest();
  phase='ready';rerolling=false;rerollDue=0;selected=-1;score=0;combo=0;remaining=DURATION;
@@ -529,7 +750,7 @@ function stopTimers(){cancelAnimationFrame(raf);clearTimeout(rerollTimer);reroll
 function clearOverlay(){overlay.hidden=true;$('resultScore').hidden=true;}
 function startGame(fresh=true){
  if(contestOver())return;
- stopGabriel();
+ millionClose();stopGabriel();
  $('contestPanel').hidden=true;
  stopTimers();phase='playing';rerolling=false;rerollDue=0;$('rerollMessage').hidden=true;$('reroll').disabled=false;$('giveup').disabled=false;cancelPendingActionTap();selected=-1;score=0;combo=0;remaining=DURATION;
  if(fresh||original.length!==N)original=newPlayableBoard();board=original.slice();render();clearOverlay();setStatus('同じ絵柄の牌を2枚タップ（2本指でも操作できます）');$('gain').classList.remove('visible');
@@ -581,8 +802,8 @@ function finish(reason,bonus){if(phase!=='playing')return;
    (contest.won?' ／ 目標達成':contest.exhausted?' ／ 目標未達':'');
  $('resultScore').textContent=`${formatted(score)} 点`;$('resultScore').hidden=false;
  $('mainButton').textContent=contest.won||contest.exhausted?'新しい大会を開始':'次のゲーム';overlay.hidden=false;
- showContestResults(reason);
- if(gabrielMilestone)showGabriel();
+ if(contest.won)millionOpen(true);
+ else{showContestResults(reason);if(gabrielMilestone)showGabriel();}
  setStatus(`最終得点：${formatted(score)}点 ／ 最高記録：${formatted(bestScore)}点`);
  // 次ゲームはプレイヤーがボタンを押した場合にのみ開始する。
 }
@@ -610,6 +831,12 @@ function sizeGame(){
 }
 function scheduleSize(){if(sizingPending)return;sizingPending=true;requestAnimationFrame(sizeGame)}
 window.addEventListener('resize',scheduleSize);
+window.addEventListener('resize',()=>{
+ if(!$('millionScreen').hidden){
+  millionResize();
+  if(!millionRunning){millionBackdrop(millionCtx,millionSizeW,millionSizeH,true);millionDrawStats(millionCtx,99999)}
+ }
+});
 window.addEventListener('orientationchange',scheduleSize);
 if(window.visualViewport)window.visualViewport.addEventListener('resize',scheduleSize);
 document.addEventListener('fullscreenchange',scheduleSize);
@@ -647,6 +874,12 @@ $('mainButton').addEventListener('click',()=>{
  startGame(true);
 });
 $('contestReset').addEventListener('click',confirmResetContest);
+$('millionScreenshot').addEventListener('click',millionScreenshot);
+$('millionRestart').addEventListener('click',()=>{
+ if(window.confirm('達成済みの大会記録を消去し、最初からやり直しますか？\\nこの操作は取り消せません。')){
+  resetContestSession();startGame(true);
+ }
+});
 $('gabrielEvent').addEventListener('click',stopGabriel);
 $('contestNext').addEventListener('click',()=>{
  requestMobileImmersion();
@@ -698,7 +931,8 @@ if(contestOver()){
  $('dialogTitle').textContent='四川省 100万点チャレンジ';
  $('dialogText').textContent='80秒のゲームを最大100回プレイして累計100万点を目指します。盤面リセットは回数に入りません。全消しは時間ボーナス込みで記録。'+(contestEntries.length?'　記録を再開：'+contestEntries.length+'回終了':'');
 }
-if(contestEntries.length)showContestResults('resume');
+if(contestStats().won)millionOpen(false);
+else if(contestEntries.length)showContestResults('resume');
 setStatus('ゲーム開始を押してください');
 if('serviceWorker' in navigator&&location.protocol==='https:'){
  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
