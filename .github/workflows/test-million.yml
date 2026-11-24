@@ -58,7 +58,7 @@ jobs:
                   if(millionRAF)cancelAnimationFrame(millionRAF);
                   millionRAF=0;
                 }''',simulated_ms)
-                if frame in [4,15,24,37]:
+                if frame in [4,15,24,40]:
                   snap=f"challenge/million_phase_{frame}.png"
                   page.screenshot(path=snap,type="png")
                   state=page.evaluate('''(ms) => ({
@@ -71,8 +71,8 @@ jobs:
                   assert state['gridHidden'], "record grid exposed during finale"
                   if frame==4:assert state['rain']>0
                   if frame==24:assert state['particles']>0
-                  if frame==37:assert state['buttons'] and not state['running']
-                if frame==37:assert page.locator('#millionRestart').is_visible()
+                  if frame==40:assert state['buttons'] and not state['running']
+                if frame==40:assert page.locator('#millionRestart').is_visible()
                 ff.stdin.write(page.screenshot(type='png',animations='allow'))
               ff.stdin.close()
               assert ff.wait()==0
