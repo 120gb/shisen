@@ -26,7 +26,7 @@ jobs:
             time.sleep(1)
             with sync_playwright() as p:
               browser=p.chromium.launch(channel="chrome",headless=True,args=["--no-sandbox","--disable-dev-shm-usage"])
-              page=browser.new_page(viewport={"width":1600,"height":900},device_scale_factor=1)
+              page=browser.new_page(viewport={"width":1280,"height":720},device_scale_factor=1)
               errors=[]
               page.on("pageerror",lambda err:errors.append(str(err)))
               # Clock is under deterministic automation control; game itself is unchanged.
@@ -45,12 +45,12 @@ jobs:
               }''')
               video="challenge/million_actual_gameplay.mp4"
               ff=subprocess.Popen([imageio_ffmpeg.get_ffmpeg_exe(),'-y','-loglevel','error',
-                                  '-f','image2pipe','-vcodec','png','-framerate','12','-i','-',
+                                  '-f','image2pipe','-vcodec','png','-framerate','4','-i','-',
                                   '-c:v','libx264','-pix_fmt','yuv420p','-preset','veryfast','-crf','23',
                                   '-movflags','+faststart',video],stdin=subprocess.PIPE)
               # 10.0s of full-size game video; capture meaningful milestones.
-              for frame in range(121):
-                simulated_ms=frame*1000/12
+              for frame in range(41):
+                simulated_ms=frame*1000/4
                 page.evaluate('''(ms) => {
                   if(millionRAF)cancelAnimationFrame(millionRAF);
                   millionRAF=0;
@@ -58,7 +58,7 @@ jobs:
                   if(millionRAF)cancelAnimationFrame(millionRAF);
                   millionRAF=0;
                 }''',simulated_ms)
-                if frame in [12,38,60,110]:
+                if frame in [4,15,24,37]:
                   snap=f"challenge/million_phase_{frame}.png"
                   page.screenshot(path=snap,type="png")
                   state=page.evaluate('''(ms) => ({
@@ -69,10 +69,10 @@ jobs:
                   })''',simulated_ms)
                   print('MILESTONE',frame,state)
                   assert state['gridHidden'], "record grid exposed during finale"
-                  if frame==12:assert state['rain']>0
-                  if frame==60:assert state['particles']>0
-                  if frame==110:assert state['buttons'] and not state['running']
-                if frame==110:assert page.locator('#millionRestart').is_visible()
+                  if frame==4:assert state['rain']>0
+                  if frame==24:assert state['particles']>0
+                  if frame==37:assert state['buttons'] and not state['running']
+                if frame==37:assert page.locator('#millionRestart').is_visible()
                 ff.stdin.write(page.screenshot(type='png',animations='allow'))
               ff.stdin.close()
               assert ff.wait()==0
