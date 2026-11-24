@@ -11,7 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install browser automation
-        run: python -m pip install --quiet playwright imageio-ffmpeg
+        run: |
+          python -m pip install --quiet playwright imageio-ffmpeg
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
       - name: Record real competition HTML in Chrome
         run: |
           cat > /tmp/capture.py <<'PY'
@@ -34,12 +36,27 @@ jobs:
               print('contest table visible:',page.locator('#contestPanel').is_visible())
               assert page.locator('.gabriel-illustration').get_attribute('src')=='./gabriel.webp'
               assert page.locator('#contestPanel').is_visible()
+              # Set the actual game's CSS animations to a deterministic timeline.
+              # Screenshots taken slower than real-time must not allow CSS to finish
+              # before the video reaches that frame.
+              page.evaluate("""() => {
+                window.__gabAnimations = [...document.querySelectorAll('#gabrielEvent, #gabrielEvent *')]
+                  .flatMap(el=>el.getAnimations({subtree:false}));
+                window.__gabAnimations.forEach(a=>a.pause());
+                return window.__gabAnimations.length;
+              }""")
+              print('animated elements:',page.evaluate('window.__gabAnimations.length'))
               ff=subprocess.Popen([imageio_ffmpeg.get_ffmpeg_exe(),'-y','-loglevel','error','-f','image2pipe','-vcodec','png',
                                    '-framerate','15','-i','-','-c:v','libx264','-pix_fmt','yuv420p',
                                    '-preset','veryfast','-crf','23','-movflags','+faststart',target],
                                   stdin=subprocess.PIPE)
               for i in range(105):
-                if i:page.clock.run_for(1000/15)
+                if i:
+                  ms=i*1000/15
+                  page.evaluate("(ms)=>window.__gabAnimations.forEach(a=>{a.currentTime=ms;})",ms)
+                if i in [0,15,42,65,90]:
+                  print('frame',i,'hidden',page.locator('#gabrielEvent').get_attribute('hidden'),
+                    'opacity',page.locator('.gabriel-fly').evaluate('(el)=>getComputedStyle(el).opacity'))
                 if i==42:
                   page.screenshot(path='challenge/gabriel_actual_screen.png',type='png')
                 ff.stdin.write(page.screenshot(type='png',animations='allow'))
