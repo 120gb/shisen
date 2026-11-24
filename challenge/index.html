@@ -425,34 +425,14 @@ function millionBackdrop(ctx,w,h,final){
  glow.addColorStop(0,'rgba(88,90,139,.3)');glow.addColorStop(1,'rgba(6,10,22,0)');
  ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
  // Stable glints remain in the completed PNG after all fireworks end.
- const count=70;
+ const count=105;
  for(let i=0;i<count;i++){
   const x=((i*173.17+41)%997)/997*w,y=((i*389.71+83)%997)/997*h;
-  ctx.globalAlpha=.15+((i*7)%10)/20;
-  ctx.fillStyle=i%4?'#c2d5ff':'#ffdf89';ctx.beginPath();ctx.arc(x,y,(i%3+1)*w/1700,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.19+((i*7)%10)/19;
+  ctx.fillStyle=i%4?'#c2d5ff':'#ffdf89';ctx.beginPath();ctx.arc(x,y,(i%3+1)*w/1580,0,Math.PI*2);ctx.fill();
  }
  ctx.globalAlpha=1;
- if(final){
-  // Keep two decorative firework blooms in the completed screen and exported PNG,
-  // away from the four central result labels.
-  const bursts=[[w*.13,h*.28,w*.12,'#ffcd72'],[w*.87,h*.27,w*.11,'#9bc6ff'],
-                [w*.13,h*.73,w*.075,'#ff9dac'],[w*.88,h*.72,w*.076,'#d5b5ff']];
-  ctx.save();ctx.lineCap='round';
-  for(const [bx,by,rad,color] of bursts){
-   ctx.strokeStyle=color;ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=Math.max(4,w*.01);
-   for(let k=0;k<30;k++){
-    const a=k*Math.PI*2/30,len=rad*(.64+.26*Math.sin(k*8.3));
-    ctx.globalAlpha=.15+((k%4)*.085);ctx.lineWidth=Math.max(1,w*.0017);
-    ctx.beginPath();ctx.moveTo(bx+Math.cos(a)*len*.45,by+Math.sin(a)*len*.45);
-    ctx.lineTo(bx+Math.cos(a)*len,by+Math.sin(a)*len);ctx.stroke();
-    ctx.beginPath();ctx.arc(bx+Math.cos(a)*rad*1.1,by+Math.sin(a)*rad*1.1,Math.max(1,w*.0012),0,Math.PI*2);ctx.fill();
-   }
-  }
-  ctx.restore();
-  const upper=ctx.createRadialGradient(w*.5,h*.08,2,w*.5,h*.08,w*.5);
-  upper.addColorStop(0,'rgba(255,186,67,.20)');upper.addColorStop(1,'rgba(255,186,67,0)');
-  ctx.fillStyle=upper;ctx.fillRect(0,0,w,h);
- }
+
 }
 function millionDrawRain(ctx,elapsed){
  const w=millionSizeW,h=millionSizeH;
