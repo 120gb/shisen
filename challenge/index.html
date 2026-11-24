@@ -181,7 +181,7 @@ background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;
 .million-restart{border:1px solid #ffe39c;background:linear-gradient(180deg,#ffe5a3,#e8a74a);color:#201203}
 @media(max-height:410px){.million-buttons{bottom:4px}.million-button{min-height:30px;padding:5px 12px}}
 </style></head><body><div id="landscapeStage"><main><div class="contest-layout"><div class="play-row" id="playRow">
-<nav class="side-rail rail-left" id="leftRail" aria-label="ギブアップと音声の操作"><button class="action" id="giveup" type="button" disabled aria-label="ギブアップ（2回連続タップで現在の得点を確定）"><span>ギブアップ</span><span class="small">2回タップ</span></button><button class="action" id="sound" type="button" aria-pressed="false">音：OFF</button></nav>
+<nav class="side-rail rail-left" id="leftRail" aria-label="盤面リセットと音声の操作"><button class="action" id="reroll" type="button" disabled aria-label="盤面リセット（残り時間維持）"><span>盤面リセット</span><span class="small">時間維持</span></button><button class="action" id="sound" type="button" aria-pressed="false">音：OFF</button></nav>
 <div class="game" id="game" role="region" aria-label="四川省ゲーム">
  <div class="hud"><span>TIME: <span id="time">80</span></span><span class="score-group"><span class="score-label">SCORE:</span><span class="score-value" id="score">0</span><span class="gain" id="gain"></span></span></div>
  <div class="board" id="board" role="group" aria-label="17列8行の四川省盤面"></div>
@@ -194,7 +194,7 @@ background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;
   <button class="action primary" id="mainButton" type="button">ゲーム開始</button>
  </section></div>
 </div>
-<nav class="side-rail rail-right" id="rightRail" aria-label="盤面の操作"><button class="action" id="reroll" type="button" disabled aria-label="盤面リセット（残り時間維持）"><span>盤面リセット</span><span class="small">時間維持</span></button></nav>
+<nav class="side-rail rail-right" id="rightRail" aria-label="ギブアップの操作"><button class="action" id="giveup" type="button" disabled aria-label="ギブアップ（2回連続タップで現在の得点を確定）"><span>ギブアップ</span><span class="small">2回タップ</span></button></nav>
 <div id="status" role="status" aria-live="polite"></div>
 </div><aside class="contest-panel" id="contestPanel" aria-label="100万点チャレンジ得点表" hidden>
  <div class="contest-round-summary" aria-live="polite"><strong id="contestLastTitle">累計得点</strong><strong id="contestLastScore">0点</strong></div>
