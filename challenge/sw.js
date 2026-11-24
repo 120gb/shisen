@@ -1,5 +1,5 @@
 // Independent offline cache for the competition edition; does not alter /shisen/.
-const CACHE='sichuan-million-challenge-v13-gabriel-cache-refresh';
+const CACHE='sichuan-million-challenge-v14-playable-500k-test';
 const FILES=['./index.html','./gabriel.webp?v=20261124-character-fix','./manifest.webmanifest','../icon.svg'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('sichuan-million-challenge-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
