@@ -31,6 +31,8 @@ jobs:
               page.clock.install()
               page.goto('http://127.0.0.1:8123/challenge/?gabriel_preview=1',wait_until='load',timeout=30000)
               page.wait_for_selector('#gabrielEvent:not([hidden])',timeout=10000)
+              # Prevent the real-time game timeout from hiding the event while slower-than-realtime video frames are encoded.
+              page.evaluate('clearTimeout(gabrielTimer); gabrielTimer=0;')
               print('page title:',page.title())
               print('Gabriel image:',page.locator('.gabriel-illustration').get_attribute('src'))
               print('contest table visible:',page.locator('#contestPanel').is_visible())
