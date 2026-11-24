@@ -11,11 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install browser automation
-        run: python -m pip install --quiet playwright
+        run: python -m pip install --quiet playwright imageio-ffmpeg
       - name: Record real competition HTML in Chrome
         run: |
           cat > /tmp/capture.py <<'PY'
-          import os,subprocess
+          import os,subprocess,imageio_ffmpeg
           from playwright.sync_api import sync_playwright
           from pathlib import Path
           import time
@@ -34,7 +34,7 @@ jobs:
               print('contest table visible:',page.locator('#contestPanel').is_visible())
               assert page.locator('.gabriel-illustration').get_attribute('src')=='./gabriel.webp'
               assert page.locator('#contestPanel').is_visible()
-              ff=subprocess.Popen(['ffmpeg','-y','-loglevel','error','-f','image2pipe','-vcodec','png',
+              ff=subprocess.Popen([imageio_ffmpeg.get_ffmpeg_exe(),'-y','-loglevel','error','-f','image2pipe','-vcodec','png',
                                    '-framerate','15','-i','-','-c:v','libx264','-pix_fmt','yuv420p',
                                    '-preset','veryfast','-crf','23','-movflags','+faststart',target],
                                   stdin=subprocess.PIPE)
