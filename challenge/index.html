@@ -95,13 +95,13 @@ main{position:absolute;inset:0;width:100%;height:100%;padding:env(safe-area-inse
 background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;gap:clamp(3px,.7vh,8px)}
 .contest-layout>.contest-panel[hidden]{display:none!important}
 .contest-round-summary{flex:0 0 auto;display:flex;align-items:baseline;justify-content:center;gap:clamp(6px,1.5vw,25px);min-height:0;white-space:nowrap}
-#contestLastTitle{color:#ffa13a;font-size:clamp(12px,2.0vw,27px)}
-#contestLastScore{font:900 clamp(16px,2.9vw,38px)/1 ui-monospace,monospace;color:#ffcc7b}
-#contestLastInfo{font-size:clamp(9px,1.15vw,16px);color:#d7d7d7}
+#contestLastTitle{color:#ffa13a;font-size:clamp(15px,2.25vw,31px)}
+#contestLastScore{font:900 clamp(25px,4.4vw,62px)/1 ui-monospace,monospace;color:#ffcc7b;letter-spacing:-.035em}
+.contest-stat .stat-extra{font-size:clamp(7px,.75vw,11px);color:#d7d7d7;white-space:nowrap}
 .contest-panel .contest-heading{font-size:clamp(12px,1.7vw,25px)}
 .contest-panel .contest-progressline{font-size:clamp(10px,1.2vw,16px)}
 .contest-panel .contest-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(3px,.6vw,8px)}
-.contest-panel .contest-stat{min-height:clamp(25px,5vh,46px);padding:clamp(3px,.5vw,8px);gap:6px}
+.contest-panel .contest-stat{min-height:clamp(25px,5vh,46px);padding:clamp(3px,.5vw,8px);gap:4px;flex-wrap:wrap}
 .contest-panel .stat-title{font-size:clamp(9px,1.15vw,15px)}
 .contest-panel .stat-value{font-size:clamp(13px,2vw,25px);letter-spacing:-.04em}
 .contest-panel .record-heading{font-size:clamp(10px,1.2vw,15px)}
@@ -195,14 +195,14 @@ background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;
 <nav class="side-rail rail-right" id="rightRail" aria-label="盤面の操作"><button class="action" id="reroll" type="button" disabled aria-label="盤面リセット（残り時間維持）"><span>盤面リセット</span><span class="small">時間維持</span></button></nav>
 <div id="status" role="status" aria-live="polite"></div>
 </div><aside class="contest-panel" id="contestPanel" aria-label="100万点チャレンジ得点表" hidden>
- <div class="contest-round-summary" aria-live="polite"><strong id="contestLastTitle">プレイ結果</strong><strong id="contestLastScore">0点</strong><span id="contestLastInfo">80秒終了</span></div>
+ <div class="contest-round-summary" aria-live="polite"><strong id="contestLastTitle">累計得点</strong><strong id="contestLastScore">0点</strong></div>
  <header class="contest-header">
   <div class="contest-heading">四川省 <strong>100万点チャレンジ</strong></div>
   <div class="contest-progressline"><span id="contestProgressLabel">0 / 1,000,000点</span><span id="contestRoundLabel">0 / 100回</span></div>
   <div class="contest-meter"><div id="contestMeterFill"></div></div>
  </header>
  <section class="contest-stats" aria-label="大会成績">
-  <div class="contest-stat"><span class="stat-title">累計得点</span><strong class="stat-value" id="contestTotal">0</strong></div>
+  <div class="contest-stat"><span class="stat-title" id="contestRoundResultTitle">今回の結果</span><strong class="stat-value" id="contestRoundResultScore">—</strong><span class="stat-extra" id="contestLastInfo">—</span></div>
   <div class="contest-stat"><span class="stat-title">平均点数</span><strong class="stat-value" id="contestAverage">—</strong></div>
   <div class="contest-stat"><span class="stat-title">最高点数</span><strong class="stat-value" id="contestBest">—</strong></div>
   <div class="contest-stat"><span class="stat-title">全消し回数</span><strong class="stat-value" id="contestClears">0</strong></div>
@@ -336,7 +336,8 @@ function buildRecordGrid(){
 function renderContest(){
  buildRecordGrid();
  const st=contestStats();
- $('contestTotal').textContent=formatted(st.total);
+ $('contestLastTitle').textContent='累計得点';
+ $('contestLastScore').textContent=formatted(st.total)+' 点';
  $('contestAverage').textContent=st.count?formatted(Math.round(st.average)):'—';
  $('contestBest').textContent=st.count?formatted(st.best):'—';
  $('contestClears').textContent=formatted(st.clears);
@@ -619,8 +620,10 @@ function millionScreenshot(){
 function showContestResults(reason){
  const st=contestStats();
  const last=contestEntries[st.count-1]||null;
- $('contestLastTitle').textContent=st.won?'100万点達成！':st.exhausted?'100回終了':st.count+'回目の結果';
- $('contestLastScore').textContent=last?formatted(last.score)+'点':'—';
+ $('contestLastTitle').textContent='累計得点';
+ $('contestLastScore').textContent=formatted(st.total)+' 点';
+ $('contestRoundResultTitle').textContent=st.count+'回目の結果';
+ $('contestRoundResultScore').textContent=last?formatted(last.score):'—';
  $('contestLastInfo').textContent=last?(last.reason==='giveup'?'ギブアップ':last.clear?'全消し':'80秒終了'):'大会成績';
  $('contestNext').textContent=st.won||st.exhausted?'新しい大会を開始':'次のゲーム';
  overlay.hidden=true;
