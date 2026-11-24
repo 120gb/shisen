@@ -266,8 +266,11 @@ try {bestScore=Number(localStorage.getItem('shisen_best_challenge_v1'))||0} catc
 
 // One entry is recorded only when an 80-second game finishes (or is cleared early).
 // Resetting the mahjong board within those 80 seconds never adds an entry.
-const CONTEST_TARGET=1000000, CONTEST_MAX_ROUNDS=100, CONTEST_KEY='shisen_1000000_100rounds_v1';
+const TEST_500K=new URLSearchParams(location.search).get('test500k')==='1';
+const TEST_500K_ENTRIES=()=>Array.from({length:25},(_,i)=>({score:i===24?19999:20000,clear:false,reason:'timeout',time:0}));
+const CONTEST_TARGET=1000000, CONTEST_MAX_ROUNDS=100, CONTEST_KEY=TEST_500K?'shisen_500k_trial_only':'shisen_1000000_100rounds_v1';
 function restoreContest(){
+ if(TEST_500K)return TEST_500K_ENTRIES(); // Not stored, and never reads the real tournament record.
  try{
   const saved=JSON.parse(localStorage.getItem(CONTEST_KEY)||'null');
   if(!saved||!Array.isArray(saved.entries))return [];
@@ -278,6 +281,7 @@ function restoreContest(){
 let contestEntries=restoreContest();
 let contestSavedOk=true;
 function saveContest(){
+ if(TEST_500K){contestSavedOk=true;return} // Real scores are strictly untouched.
  try{localStorage.setItem(CONTEST_KEY,JSON.stringify({version:1,entries:contestEntries}));contestSavedOk=true}
  catch(_){contestSavedOk=false}
 }
@@ -590,12 +594,12 @@ function resetContestSession(){
  millionPreviewStats=null;
  millionClose();stopGabriel();
  $('contestPanel').hidden=true;
- stopTimers();contestEntries=[];saveContest();
+ stopTimers();contestEntries=TEST_500K?TEST_500K_ENTRIES():[];saveContest();
  phase='ready';rerolling=false;rerollDue=0;selected=-1;score=0;combo=0;remaining=DURATION;
  $('rerollMessage').hidden=true;$('reroll').disabled=true;$('giveup').disabled=true;cancelPendingActionTap();
  original=newPlayableBoard();board=original.slice();render();renderContest();
  $('dialogTitle').textContent='100万点チャレンジ';
- $('dialogText').textContent='80秒ごとに得点を記録し、最大100回で累計100万点を目指します。全消しは残り時間ボーナス込みで記録。盤面リセットは回数に含まれません。';
+ $('dialogText').textContent=TEST_500K?'【50万点到達テスト】累計499,999点から開始。牌を1組消して100点以上を取り、ギブアップを2回タップすると結果確定時にガブリエル演出が始まります。通常記録には保存されません。':'80秒ごとに得点を記録し、最大100回で累計100万点を目指します。全消しは残り時間ボーナス込みで記録。盤面リセットは回数に含まれません。';
  $('resultScore').hidden=true;$('mainButton').textContent='ゲーム開始';overlay.hidden=false;
  setStatus('新しい大会を開始できます');
 }
@@ -908,6 +912,12 @@ if(contestOver()){
 }else{
  $('dialogTitle').textContent='四川省 100万点チャレンジ';
  $('dialogText').textContent='80秒のゲームを最大100回プレイして累計100万点を目指します。盤面リセットは回数に入りません。全消しは時間ボーナス込みで記録。'+(contestEntries.length?'　記録を再開：'+contestEntries.length+'回終了':'');
+}
+if(TEST_500K){
+ $('dialogTitle').textContent='50万点到達・実プレイテスト';
+ $('dialogText').textContent='累計499,999点から開始。牌を1組消して100点以上を取り、「ギブアップ」を2回タップして得点を確定してください。結果画面でガブリエルが登場します。通常の大会記録には影響しません。';
+ $('mainButton').textContent='テストプレイ開始';
+ $('contestPanel').hidden=true;overlay.hidden=false;
 }
 if(contestStats().won)millionOpen(false);
 else if(contestEntries.length)showContestResults('resume');
