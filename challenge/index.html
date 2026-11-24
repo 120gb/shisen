@@ -127,40 +127,46 @@ background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;
 }
 
 /* The 500,000-point Gabriel visit sits on top of the intact 100-cell results sheet. */
-.gabriel-event{position:absolute;inset:0;z-index:30;overflow:hidden;isolation:isolate;pointer-events:auto;cursor:pointer}
+
+.gabriel-event{position:absolute;inset:0;z-index:30;overflow:hidden;isolation:isolate;pointer-events:auto;cursor:default}
 .gabriel-event[hidden]{display:none!important}
-.gabriel-portal{position:absolute;left:50%;top:47%;width:min(37vw,64vh);height:min(37vw,64vh);max-width:430px;max-height:430px;border-radius:50%;transform:translate(-50%,-50%) scale(.05);opacity:0;
- background:radial-gradient(ellipse at center,rgba(255,251,204,.45) 0%,rgba(255,214,91,.26) 40%,transparent 65%);
- border:clamp(5px,1vw,12px) solid rgba(255,213,88,.8);
- box-shadow:0 0 20px 5px #fbb7487a, inset 0 0 42px #ffe288a8,0 0 85px 20px #ffc95433;
- animation:gabPortal 5.5s ease-in-out forwards}
-.gabriel-fly{position:absolute;left:50%;top:46%;width:min(31vw,48vh);max-width:350px;aspect-ratio:300/310;opacity:0;transform:translate(-50%,-50%) scale(.12);
- filter:drop-shadow(0 0 13px #f4bf5a85);animation:gabFly 5.5s cubic-bezier(.22,.7,.25,1) forwards}
-.gabriel-illustration{width:100%;height:100%;overflow:visible}
-.gabriel-wings{transform-origin:50% 50%;animation:gabWings .38s ease-in-out infinite alternate}
-.gabriel-speech{position:absolute;left:62%;top:11%;padding:clamp(9px,1.5vw,21px) clamp(16px,2vw,30px);font:900 clamp(21px,4.2vw,58px)/1.2 system-ui,sans-serif;white-space:nowrap;
- border:clamp(3px,.4vw,6px) solid #d99e36;border-radius:35px;background:linear-gradient(#fffdf2,#ffe7ad);color:#ab581b;
- box-shadow:0 8px 30px #0008,0 0 24px #ffd2757d;text-shadow:1px 2px 0 #fff4d6;opacity:0;transform:translate(-20%,-10%) scale(.25);
- animation:gabBubble 5.5s ease forwards}
-.gabriel-speech::after{content:'';position:absolute;left:12%;bottom:-21px;width:25px;height:25px;background:#ffe7ad;border-right:4px solid #d99e36;border-bottom:4px solid #d99e36;transform:rotate(45deg)}
-.gabriel-note{color:#d99116;margin-right:.25em}
-.gabriel-music{position:absolute;left:69%;top:57%;color:#fff2aa;text-shadow:0 0 12px #ffba42;font:900 clamp(24px,4vw,56px)/1 system-ui,sans-serif;opacity:0;animation:gabMusic 5.5s ease forwards}
-.gabriel-sparkles{position:absolute;inset:0;pointer-events:none;opacity:0;animation:gabSparkles 5.5s ease forwards}
+.gabriel-portal{position:absolute;left:50%;top:48%;width:min(37vw,64vh);height:min(37vw,64vh);max-width:440px;max-height:440px;border-radius:50%;opacity:0;transform:translate(-50%,-50%) scale(.08);
+ background:radial-gradient(ellipse at center,#fff6d278 0%,#ffcf6b4d 42%,#ffd55700 71%);
+ border:clamp(5px,1vw,12px) solid #ffda74;box-shadow:0 0 18px 3px #ffc861bb,inset 0 0 42px #ffe59da6,0 0 95px 24px #ffc14b52;
+ animation:gabPortal 6.2s ease-in-out forwards}
+.gabriel-bell{position:absolute;left:50%;top:15%;width:clamp(65px,9.1vw,145px);aspect-ratio:110/130;opacity:0;
+ transform:translate(-50%,-40%) scale(.2);filter:drop-shadow(0 0 12px #ffe37e);
+ animation:gabBellAppear 6.2s ease-in-out forwards}
+.gabriel-bell svg{width:100%;height:100%;transform-origin:50% 8%;animation:gabBellRing .48s ease-in-out 6 alternate}
+.gabriel-fly{position:absolute;left:50%;top:49%;width:min(31vw,51vh);max-width:390px;aspect-ratio:1;opacity:0;
+ transform:translate(-50%,-50%) scale(.05);filter:drop-shadow(0 0 9px #ffc86a8e);
+ animation:gabFly 6.2s cubic-bezier(.24,.68,.22,1) forwards}
+.gabriel-illustration{width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.gabriel-speech{position:absolute;left:60%;top:13%;padding:clamp(8px,1.4vw,20px) clamp(14px,2vw,28px);
+ font:900 clamp(22px,3.8vw,58px)/1.2 system-ui,sans-serif;white-space:nowrap;border:clamp(3px,.42vw,6px) solid #d99e36;
+ border-radius:30px;background:linear-gradient(#fffdf2,#ffe2a0);color:#9a4918;text-shadow:1px 2px #fff9e7;
+ box-shadow:0 6px 30px #0009,0 0 25px #ffd2758a;opacity:0;transform:translate(-18%,-12%) scale(.2);
+ animation:gabBubble 6.2s ease-in-out forwards}
+.gabriel-speech::after{content:'';position:absolute;left:12%;bottom:-20px;width:23px;height:23px;background:#ffe2a0;border-right:4px solid #d99e36;border-bottom:4px solid #d99e36;transform:rotate(45deg)}
+.gabriel-note{color:#bd811e;margin-right:.17em}
+.gabriel-music{position:absolute;left:69%;top:57%;color:#fff2aa;text-shadow:0 0 12px #ffba42;font:900 clamp(24px,4vw,56px)/1 system-ui,sans-serif;opacity:0;
+ animation:gabMusic 6.2s ease forwards}
+.gabriel-sparkles{position:absolute;inset:0;pointer-events:none;opacity:0;animation:gabSparkles 6.2s ease forwards}
 .gabriel-sparkles i{position:absolute;left:var(--sx);top:var(--sy);font-size:clamp(16px,3vw,38px);color:#fff0b3;text-shadow:0 0 10px #ffd76a;animation:gabTwinkle .6s ease-in-out infinite alternate}
 .gabriel-sparkles i:nth-child(1){--sx:27%;--sy:18%}.gabriel-sparkles i:nth-child(2){--sx:62%;--sy:27%;animation-delay:.1s}
 .gabriel-sparkles i:nth-child(3){--sx:36%;--sy:65%;animation-delay:.4s}.gabriel-sparkles i:nth-child(4){--sx:74%;--sy:71%;animation-delay:.3s}
 .gabriel-sparkles i:nth-child(5){--sx:18%;--sy:56%;animation-delay:.2s}.gabriel-sparkles i:nth-child(6){--sx:79%;--sy:40%;animation-delay:.5s}
-@keyframes gabPortal{0%{opacity:0;transform:translate(-50%,-50%) scale(.05)}10%{opacity:1;transform:translate(-50%,-50%) scale(.9)}22%{opacity:1;transform:translate(-50%,-50%) scale(1)}48%{opacity:.85}63%{opacity:0;transform:translate(-50%,-50%) scale(1.22)}100%{opacity:0}}
-@keyframes gabFly{0%{opacity:0;transform:translate(-50%,-50%) scale(.12)}13%{opacity:1;transform:translate(-50%,-50%) scale(.75)}23%{opacity:1;transform:translate(-50%,-50%) scale(1)}62%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-3deg)}70%{opacity:1;transform:translate(-62%,-55%) scale(1) rotate(-10deg)}99%{opacity:1;transform:translate(calc(-50% - 115vw),-110%) scale(.78) rotate(-14deg)}100%{opacity:0;transform:translate(calc(-50% - 115vw),-110%) scale(.78)}}
-@keyframes gabBubble{0%,22%{opacity:0;transform:translate(-20%,-10%) scale(.25)}31%{opacity:1;transform:translate(0,0) scale(1.07)}38%,59%{opacity:1;transform:translate(0,0) scale(1)}68%,100%{opacity:0;transform:translate(-12%,-15%) scale(.84)}}
-@keyframes gabMusic{0%,29%{opacity:0;transform:translateY(9px)}36%,57%{opacity:1;transform:translateY(-9px)}70%,100%{opacity:0;transform:translateY(-30px)}}
-@keyframes gabSparkles{0%,12%{opacity:0}25%,70%{opacity:1}85%,100%{opacity:0}}
+@keyframes gabPortal{0%{opacity:0;transform:translate(-50%,-50%) scale(.08)}12%{opacity:1;transform:translate(-50%,-50%) scale(.92)}23%,66%{opacity:1;transform:translate(-50%,-50%) scale(1)}80%{opacity:.6;transform:translate(-50%,-50%) scale(1.08)}100%{opacity:0;transform:translate(-50%,-50%) scale(.3)}}
+@keyframes gabBellAppear{0%,4%{opacity:0;transform:translate(-50%,-40%) scale(.2)}13%,61%{opacity:1;transform:translate(-50%,0) scale(1)}74%,100%{opacity:0;transform:translate(-50%,-25%) scale(.7)}}
+@keyframes gabBellRing{0%{transform:rotate(-14deg)}100%{transform:rotate(14deg)}}
+@keyframes gabFly{0%{opacity:0;transform:translate(-50%,-50%) scale(.05)}13%{opacity:.75;transform:translate(-50%,-50%) scale(.55)}23%{opacity:1;transform:translate(-50%,-50%) scale(1)}32%,68%{opacity:1;transform:translate(-50%,-50%) scale(1)}73%{opacity:1;transform:translate(-62%,-53%) scale(.98) rotate(-7deg)}99%{opacity:1;transform:translate(calc(-50% - 115vw),-92%) scale(.7) rotate(-15deg)}100%{opacity:0;transform:translate(calc(-50% - 115vw),-92%) scale(.7) rotate(-15deg)}}
+@keyframes gabBubble{0%,25%{opacity:0;transform:translate(-18%,-12%) scale(.2)}32%{opacity:1;transform:translate(0,0) scale(1.08)}39%,67%{opacity:1;transform:translate(0,0) scale(1)}74%,100%{opacity:0;transform:translate(-12%,-14%) scale(.84)}}
+@keyframes gabMusic{0%,27%{opacity:0;transform:translateY(8px)}36%,61%{opacity:1;transform:translateY(-10px)}73%,100%{opacity:0;transform:translateY(-30px)}}
+@keyframes gabSparkles{0%,8%{opacity:0}22%,76%{opacity:1}90%,100%{opacity:0}}
 @keyframes gabTwinkle{from{transform:scale(.65) rotate(15deg)}to{transform:scale(1.25) rotate(-15deg)}}
-/* Gabriel is a one-off scored milestone, not a repeated ambient effect.
-   Keep the full entrance, announcement and leftward exit even if OS requests
-   reduced motion: the previous 0.01ms override made Gabriel blink away. */
-@media(max-height:440px){.gabriel-speech{top:6%;font-size:clamp(19px,3.2vw,32px);padding:7px 12px}.gabriel-speech::after{width:14px;height:14px;bottom:-13px}.gabriel-fly{width:min(28vw,58vh)}}
-
+/* All of Gabriel's entrance, announcement and exit remain visible even if
+   the OS requests reduced motion. This achievement animation cannot be skipped. */
+@media(max-height:440px){.gabriel-speech{top:4%;font-size:clamp(19px,3vw,36px);padding:7px 12px}.gabriel-speech::after{width:14px;height:14px;bottom:-13px}.gabriel-fly{width:min(30vw,59vh)}.gabriel-bell{top:10%;width:clamp(55px,7vw,100px)}}
 /* One-million completion: independent full-size scene; results sheet stays hidden. */
 .million-screen{position:absolute;inset:0;z-index:50;background:#070b1a;overflow:hidden;touch-action:manipulation}
 .million-screen[hidden],.million-buttons[hidden]{display:none!important}
@@ -211,56 +217,22 @@ background:#101013;padding:clamp(4px,1.0vh,10px) clamp(6px,1.1vw,15px);border:0;
  </div>
 </aside>
 <div class="gabriel-event" id="gabrielEvent" hidden role="status" aria-label="50万到達！">
-  <div class="gabriel-portal"></div>
+  <div class="gabriel-portal" aria-hidden="true"></div>
+  <div class="gabriel-bell" aria-hidden="true">
+   <svg viewBox="0 0 110 130" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="gabBellGold" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#fff5b6"/><stop offset=".4" stop-color="#f8c24c"/><stop offset="1" stop-color="#a96512"/></linearGradient></defs>
+    <path d="M51 12h9v21h-9z" fill="#c78619"/><circle cx="55" cy="13" r="11" fill="url(#gabBellGold)" stroke="#a66b12" stroke-width="3"/>
+    <path d="M55 25c-22 0-32 18-32 43 0 15-4 24-11 31h86c-7-7-11-16-11-31 0-25-10-43-32-43Z" fill="url(#gabBellGold)" stroke="#a56c19" stroke-width="4"/>
+    <path d="M25 85h59" stroke="#fff0a7" stroke-width="4" stroke-linecap="round"/><path d="M12 101h86" stroke="#ffe591" stroke-width="7" stroke-linecap="round"/>
+    <path d="M43 111c0 17 24 17 24 0" fill="#e9a531" stroke="#b4721d" stroke-width="4"/>
+    <path d="M30 46c-5 9-7 19-7 26" fill="none" stroke="#fffbd0" stroke-width="7" stroke-linecap="round"/>
+   </svg>
+  </div>
   <div class="gabriel-sparkles" aria-hidden="true"><i>✦</i><i>✧</i><i>✦</i><i>✧</i><i>✦</i><i>✦</i></div>
   <div class="gabriel-fly">
-    <svg class="gabriel-illustration" viewBox="0 0 300 310" role="img" aria-label="金色のラッパを吹く天使ガブリエル" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="gabRobe" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#fffbed"/><stop offset=".55" stop-color="#f4e5bf"/><stop offset="1" stop-color="#d4ae77"/></linearGradient>
-        <linearGradient id="gabGold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff6a8"/><stop offset=".5" stop-color="#f5bb3f"/><stop offset="1" stop-color="#be7024"/></linearGradient>
-        <linearGradient id="gabWing" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#bed4fa"/></linearGradient>
-        <filter id="gabGlow"><feGaussianBlur stdDeviation="3"/></filter>
-      </defs>
-      <!-- Halo and fluttering layered wings -->
-      <ellipse cx="142" cy="43" rx="46" ry="11" fill="none" stroke="#ffdc75" stroke-width="10" opacity=".3" filter="url(#gabGlow)"/>
-      <ellipse cx="142" cy="43" rx="46" ry="11" fill="none" stroke="url(#gabGold)" stroke-width="7"/>
-      <g class="gabriel-wings">
-       <path d="M116 167 C75 99 20 110 10 136 Q26 146 41 158 Q14 153 8 170 Q29 189 55 191 Q24 191 25 209 Q65 235 116 191Z" fill="url(#gabWing)" stroke="#c9d8ed" stroke-width="3"/>
-       <path d="M165 167 C211 96 260 111 286 134 Q266 154 246 157 Q280 159 291 181 Q262 195 237 190 Q270 200 256 214 Q214 233 166 195Z" fill="url(#gabWing)" stroke="#c9d8ed" stroke-width="3"/>
-       <path d="M30 155 Q77 155 106 189 M30 180 Q78 175 108 193 M271 154 Q213 153 172 187 M272 178 Q222 177 172 194" stroke="#c1cfea" stroke-width="3" fill="none" opacity=".9"/>
-      </g>
-      <!-- hair behind body -->
-      <path d="M98 118 Q82 74 108 64 Q145 35 181 68 Q200 86 187 142 L187 186 Q167 176 153 170 L118 174 Q92 168 98 118Z" fill="#dda44a" stroke="#a87039" stroke-width="3"/>
-      <!-- robe -->
-      <path d="M121 159 Q141 148 166 159 Q184 179 177 216 L198 282 Q142 302 85 279 L108 211 Q99 178 121 159Z" fill="url(#gabRobe)" stroke="#d5b076" stroke-width="3"/>
-      <path d="M141 161 L141 279 M113 216 Q141 227 173 218 M111 271 Q143 285 190 272" stroke="#e5c995" stroke-width="4" opacity=".8" fill="none"/>
-      <path d="M109 198 Q140 209 174 199" stroke="#d6a64c" stroke-width="9" fill="none"/>
-      <path d="M138 203 L147 203 L147 214 L138 214Z" fill="#ffe387"/>
-      <!-- face + hair -->
-      <ellipse cx="142" cy="109" rx="45" ry="49" fill="#ffddba" stroke="#ba835b" stroke-width="2.5"/>
-      <path d="M99 101 Q95 64 127 57 Q169 47 184 87 Q174 82 159 76 Q155 100 120 97 Q105 104 99 116Z" fill="#eabb5d" stroke="#b48038" stroke-width="3"/>
-      <path d="M118 67 Q128 82 113 95 M138 59 Q149 79 135 91 M164 72 Q171 91 161 95" fill="none" stroke="#f6d58d" stroke-width="7" stroke-linecap="round"/>
-      <ellipse cx="123" cy="117" rx="5" ry="7" fill="#665247"/><ellipse cx="159" cy="117" rx="5" ry="7" fill="#665247"/>
-      <path d="M134 135 Q142 139 150 135" stroke="#ae6765" stroke-width="3" stroke-linecap="round" fill="none"/>
-      <ellipse cx="108" cy="133" rx="10" ry="5" fill="#f0a6a0" opacity=".55"/><ellipse cx="175" cy="133" rx="10" ry="5" fill="#f0a6a0" opacity=".55"/>
-      <!-- billowing sleeves, hands and trumpet -->
-      <path d="M117 172 Q92 165 81 188 L98 222 Q119 220 132 193Z" fill="url(#gabRobe)" stroke="#cda86d" stroke-width="3"/>
-      <path d="M163 171 Q181 167 198 185 L188 211 Q171 216 158 195Z" fill="url(#gabRobe)" stroke="#cda86d" stroke-width="3"/>
-      <path d="M110 193 L162 184" stroke="#ffdbaf" stroke-width="15" stroke-linecap="round"/>
-      <path d="M179 188 L202 173" stroke="#ffdbaf" stroke-width="14" stroke-linecap="round"/>
-      <g transform="translate(115 155) rotate(-17)">
-       <path d="M17 27 L94 27 L94 47 L17 47Z" fill="url(#gabGold)" stroke="#a56c27" stroke-width="2"/>
-       <path d="M88 16 Q117 24 144 8 L144 65 Q116 47 88 54Z" fill="url(#gabGold)" stroke="#a56c27" stroke-width="3"/>
-       <ellipse cx="145" cy="36" rx="7" ry="30" fill="#ffe68c" stroke="#ac7928" stroke-width="2"/>
-       <path d="M13 28 L8 28 L8 45 L13 45Z" fill="#f7ce72" stroke="#a56c27" stroke-width="2"/>
-       <path d="M44 46 L44 58 M59 46 L59 58 M73 46 L73 58" stroke="#bd7527" stroke-width="6" stroke-linecap="round"/>
-      </g>
-      <circle cx="132" cy="187" r="10" fill="#ffddba" stroke="#bd9064" stroke-width="2"/>
-      <circle cx="187" cy="181" r="10" fill="#ffddba" stroke="#bd9064" stroke-width="2"/>
-      <path d="M109 280 Q103 292 111 295 M176 282 Q180 296 170 298" stroke="#d1a36d" stroke-width="8" stroke-linecap="round"/>
-    </svg>
+    <img class="gabriel-illustration" src="./gabriel.webp" alt="緑髪、紺色の帽子、白い翼と黄金のラッパを持った天使ガブリエル" draggable="false" decoding="sync"/>
   </div>
-  <div class="gabriel-speech" aria-label="50万到達！"><span class="gabriel-note" aria-hidden="true">♫</span>50万到達！</div>
+  <div class="gabriel-speech" aria-label="50万点到達！"><span class="gabriel-note" aria-hidden="true">♫</span>50万点到達！</div>
   <div class="gabriel-music" aria-hidden="true">♪ ♫ ♪</div>
 </div><section id="millionScreen" class="million-screen" hidden aria-label="100万点達成の最終結果">
  <canvas id="millionCanvas" aria-label="100万点達成。合計プレイ数、累計得点、平均点数、最高得点" role="img"></canvas>
@@ -356,7 +328,7 @@ function renderContest(){
 }
 
 const GABRIEL_HALF_TARGET=500000;
-const GABRIEL_ANIMATION_MS=5500;
+const GABRIEL_ANIMATION_MS=6200;
 let gabrielTimer=0,gabrielActive=false,gabrielShownAt=0;
 function stopGabriel(){
  if(gabrielTimer){clearTimeout(gabrielTimer);gabrielTimer=0}
@@ -390,8 +362,7 @@ function showGabriel(){
  if($('contestPanel').hidden)return;
  const event=$('gabrielEvent');
  event.hidden=false;gabrielActive=true;gabrielShownAt=performance.now();
- // The event is shown within a tile touchstart handler on the last move.
- // Do not allow its synthesized click to immediately dismiss the animation.
+ // Non-skippable milestone: a tap during the celebration never dismisses it.
  for(const child of event.children){
   child.style.animation='none';
   void child.offsetWidth;
@@ -899,11 +870,8 @@ $('millionRestart').addEventListener('click',()=>{
   resetContestSession();startGame(true);
  }
 });
-$('gabrielEvent').addEventListener('click',()=>{
- // Ignore the delayed compatibility click generated by the milestone's final tile tap.
- if(!gabrielActive||performance.now()-gabrielShownAt<1800)return;
- stopGabriel();
-});
+$('gabrielEvent').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();});
+$('gabrielEvent').addEventListener('pointerdown',e=>{e.stopPropagation();},{capture:true});
 $('contestNext').addEventListener('click',()=>{
  requestMobileImmersion();
  if(contestOver()){
