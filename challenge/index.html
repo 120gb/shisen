@@ -377,6 +377,7 @@ function showGabriel(){
 const MILLION_RAIN_END=3100,MILLION_FIREWORKS_END=7800;
 let millionRAF=0,millionRunning=false,millionStart=0,millionLastFrame=0;
 let millionTiles=[],millionParticles=[],millionBurstNext=0,millionImages=[],millionSizeW=0,millionSizeH=0;
+let millionPreviewStats=null;
 const millionCanvas=$('millionCanvas'),millionCtx=millionCanvas.getContext('2d');
 function millionRand(min,max){return min+Math.random()*(max-min)}
 function millionResize(){
@@ -408,7 +409,7 @@ function millionLaunchBurst(now){
  const x=millionRand(.1*w,.9*w),y=millionRand(.10*h,.65*h);
  const palettes=[['#ffc35a','#fff7c6','#ef8a4b'],['#89c9ff','#d7f3ff','#619dff'],['#ff9dac','#fff1ec','#ff597b'],['#ddadff','#fff2fa','#bc7bff']];
  const colors=palettes[Math.floor(Math.random()*palettes.length)];
- const count=70,spd=Math.max(25,Math.min(w,h)*.00042);
+ const count=70,spd=Math.max(1.8,Math.min(w,h)*.0045);
  for(let j=0;j<count;j++){
   const a=(Math.PI*2*j)/count+millionRand(-.05,.05),v=spd*millionRand(.68,1.42);
   millionParticles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,age:0,ttl:millionRand(950,1680),
@@ -493,7 +494,7 @@ function millionFireworks(ctx,dt,elapsed){
 }
 function millionDrawStats(ctx,elapsed){
  if(elapsed<3500)return;
- const st=contestStats(),w=millionSizeW,h=millionSizeH;
+ const st=millionPreviewStats||contestStats(),w=millionSizeW,h=millionSizeH;
  const show=Math.min(1,(elapsed-3500)/900);
  ctx.save();ctx.globalAlpha=show;
  const base=Math.min(w/17,h/10.2),cx=w*.5;
@@ -570,7 +571,7 @@ function millionScreenshot(){
  millionSizeW=1600;millionSizeH=900;
  millionBackdrop(ctx,1600,900,true);millionDrawStats(ctx,99999);
  millionSizeW=oldW;millionSizeH=oldH;
- const filename='四川省_100万点達成_'+contestStats().count+'PLAY.png';
+ const filename='四川省_100万点達成_'+(millionPreviewStats||contestStats()).count+'PLAY.png';
  const fallback=()=>{
   try{const a=document.createElement('a');a.href=exportCanvas.toDataURL('image/png');a.download=filename;
    document.body.appendChild(a);a.click();a.remove()}catch(_){setStatus('画像保存に失敗しました')}
@@ -606,6 +607,7 @@ function recordContestRound(reason){
  saveContest();renderContest();return contestStats();
 }
 function resetContestSession(){
+ millionPreviewStats=null;
  millionClose();stopGabriel();
  $('contestPanel').hidden=true;
  stopTimers();contestEntries=[];saveContest();
@@ -740,6 +742,7 @@ function stopTimers(){cancelAnimationFrame(raf);clearTimeout(rerollTimer);reroll
 function clearOverlay(){overlay.hidden=true;$('resultScore').hidden=true;}
 function startGame(fresh=true){
  if(contestOver())return;
+ millionPreviewStats=null;
  millionClose();stopGabriel();
  $('contestPanel').hidden=true;
  stopTimers();phase='playing';rerolling=false;rerollDue=0;$('rerollMessage').hidden=true;$('reroll').disabled=false;$('giveup').disabled=false;cancelPendingActionTap();selected=-1;score=0;combo=0;remaining=DURATION;
@@ -866,6 +869,10 @@ $('mainButton').addEventListener('click',()=>{
 $('contestReset').addEventListener('click',confirmResetContest);
 $('millionScreenshot').addEventListener('click',millionScreenshot);
 $('millionRestart').addEventListener('click',()=>{
+ if(millionPreviewStats){
+  location.href='./'; // Only leave demo mode; the real 100-round record stays untouched.
+  return;
+ }
  if(window.confirm('達成済みの大会記録を消去し、最初からやり直しますか？\\nこの操作は取り消せません。')){
   resetContestSession();startGame(true);
  }
@@ -924,7 +931,12 @@ if(contestOver()){
 }
 if(contestStats().won)millionOpen(false);
 else if(contestEntries.length)showContestResults('resume');
-if(new URLSearchParams(location.search).get('gabriel_preview')==='1'){
+if(new URLSearchParams(location.search).get('million_preview')==='1'){
+ // Full live finale test: synthetic summary never enters localStorage.
+ // Preserve the real event's underlying game HTML, SVG/canvas, buttons, and timing.
+ millionPreviewStats={count:52,total:1012450,best:36200,average:1012450/52,clears:9,won:true,exhausted:false};
+ millionOpen(true);
+}else if(new URLSearchParams(location.search).get('gabriel_preview')==='1'){
  // Ephemeral demo data; never write it to localStorage or change saved results.
  const savedEntries=contestEntries;
  if(!$('millionScreen').hidden)millionClose();
