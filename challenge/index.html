@@ -701,7 +701,7 @@ function hasMove(layout=board){const groups=Array.from({length:34},()=>[]);for(l
 }
 function newPlayableBoard(){let b=makeBoard();for(let attempt=0;attempt<100&&!hasMove(b);attempt++)b=makeBoard();return b;}
 function playTone(freq=600,length=.06){if(!audioOn)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audioCtx=audioCtx||new AC();if(audioCtx.state==='suspended')audioCtx.resume();const osc=audioCtx.createOscillator(),vol=audioCtx.createGain();osc.frequency.value=freq;osc.type='sine';vol.gain.setValueAtTime(.055,audioCtx.currentTime);vol.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+length);osc.connect(vol).connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime+length)}catch(_){}}
-function recordBest(){if(score>bestScore){bestScore=score;try{localStorage.setItem('shisen_best_challenge_v1',String(bestScore))}catch(_){}}}
+function recordBest(){if(score>bestScore){bestScore=score;if(!TEST_500K)try{localStorage.setItem('shisen_best_challenge_v1',String(bestScore))}catch(_){}}}
 function showGain(amount){const el=$('gain');el.textContent=`${amount>=0?'+':''}${formatted(amount)}`;el.classList.add('visible');clearTimeout(gainTimer);gainTimer=setTimeout(()=>el.classList.remove('visible'),900);}
 function choose(i){if(phase!=='playing'||rerolling||board[i]===null)return;
  if(selected<0){selected=i;cells[i].classList.add('selected');playTone(480,.035);return;}
