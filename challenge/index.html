@@ -408,8 +408,8 @@ let millionTiles=[],millionParticles=[],millionBurstNext=0,millionImages=[],mill
 const millionCanvas=$('millionCanvas'),millionCtx=millionCanvas.getContext('2d');
 function millionRand(min,max){return min+Math.random()*(max-min)}
 function millionResize(){
- const rect=millionCanvas.getBoundingClientRect();
- const w=Math.max(1,rect.width),h=Math.max(1,rect.height);
+ // clientWidth/clientHeight preserve landscape canvas geometry when the stage is CSS-rotated on portrait phones.
+ const w=Math.max(1,millionCanvas.clientWidth),h=Math.max(1,millionCanvas.clientHeight);
  // Limit backing pixels for iPad and phones while keeping exported PNG crisp.
  const scale=Math.min(window.devicePixelRatio||1,2,1920/w,1200/h);
  millionCanvas.width=Math.round(w*scale);millionCanvas.height=Math.round(h*scale);
@@ -460,6 +460,22 @@ function millionBackdrop(ctx,w,h,final){
  }
  ctx.globalAlpha=1;
  if(final){
+  // Keep two decorative firework blooms in the completed screen and exported PNG,
+  // away from the four central result labels.
+  const bursts=[[w*.13,h*.28,w*.12,'#ffcd72'],[w*.87,h*.27,w*.11,'#9bc6ff'],
+                [w*.13,h*.73,w*.075,'#ff9dac'],[w*.88,h*.72,w*.076,'#d5b5ff']];
+  ctx.save();ctx.lineCap='round';
+  for(const [bx,by,rad,color] of bursts){
+   ctx.strokeStyle=color;ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=Math.max(4,w*.01);
+   for(let k=0;k<30;k++){
+    const a=k*Math.PI*2/30,len=rad*(.64+.26*Math.sin(k*8.3));
+    ctx.globalAlpha=.15+((k%4)*.085);ctx.lineWidth=Math.max(1,w*.0017);
+    ctx.beginPath();ctx.moveTo(bx+Math.cos(a)*len*.45,by+Math.sin(a)*len*.45);
+    ctx.lineTo(bx+Math.cos(a)*len,by+Math.sin(a)*len);ctx.stroke();
+    ctx.beginPath();ctx.arc(bx+Math.cos(a)*rad*1.1,by+Math.sin(a)*rad*1.1,Math.max(1,w*.0012),0,Math.PI*2);ctx.fill();
+   }
+  }
+  ctx.restore();
   const upper=ctx.createRadialGradient(w*.5,h*.08,2,w*.5,h*.08,w*.5);
   upper.addColorStop(0,'rgba(255,186,67,.20)');upper.addColorStop(1,'rgba(255,186,67,0)');
   ctx.fillStyle=upper;ctx.fillRect(0,0,w,h);
